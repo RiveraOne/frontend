@@ -1,240 +1,206 @@
 import Link from "next/link";
 
+const essentialFeatures = [
+  { label: "Smart Tracking", detail: "Log income/expenses and see your month at a glance." },
+  { label: "Health Dashboard", detail: "Clear totals, category spend, and what is left." },
+  { label: "Purchase Checks (Limited)", detail: "Quick sanity checks to reduce impulse spending." },
+  { label: "Receipt Upload (5 GB)", detail: "Store receipts and proof of purchase securely." },
+];
+
+const proFeatures = [
+  { label: "Unlimited Purchase Checks", detail: "Ask 'Can I afford this?' anytime you're about to buy." },
+  { label: "Smart Budget Rules", detail: "30/30/40 tracking plus custom splits." },
+  { label: "Investment Insights", detail: "Turn spare cash into strategy with live-rate refs." },
+  { label: "Custom Assistant Tone", detail: "Choose Pro Advisor or Money Buddy vibe." },
+  { label: "Priority AI Performance", detail: "Faster, more detailed advisor responses." },
+];
+
+const compareRows = [
+  { feature: "Smart Income & Expense Tracking", essential: "✔ Full access", pro: "✔ Full access", proHighlight: false },
+  { feature: "Monthly Financial Health Dashboard", essential: "✔", pro: "✔ Advanced", proHighlight: true },
+  { feature: "Can I Afford This? Purchase Check", essential: "Limited checks", pro: "Unlimited", proHighlight: true },
+  { feature: "Receipt Upload & Proof Storage", essential: "5 GB vault", pro: "Upgraded vault", proHighlight: true },
+  { feature: "30-30-40 Smart Budget Mode", essential: "Basic tracking", pro: "Customizable splits", proHighlight: true },
+  { feature: "Investment Insight Suggestions", essential: "—", pro: "✔ Gold & Index ideas", proHighlight: true },
+  { feature: "Surplus Allocation Guidance", essential: "—", pro: "✔ Personalized", proHighlight: true },
+  { feature: "Choose Assistant Tone", essential: "—", pro: "✔ Pro or Buddy", proHighlight: true },
+  { feature: "Priority AI Performance", essential: "Standard", pro: "Faster responses", proHighlight: true },
+  { feature: "Custom Themes", essential: "Standard", pro: "Library access", proHighlight: true },
+];
+
 export default function PricingPage() {
   const year = new Date().getFullYear();
 
   return (
-    <main className="bg-gradient-to-b from-[#f5fbfa] via-white to-white">
-      <section className="mw-shell grid gap-5">
-        <header className="mw-card grid gap-4 p-6 lg:grid-cols-[1fr_auto] lg:items-center">
-          <div className="flex items-center gap-4">
-            <img
-              src="/metra-wealth-logo.png"
-              alt="Metra Wealth"
-              className="h-14 w-14 rounded-xl border border-mw-border bg-white object-contain p-2"
-            />
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.1em] text-mw-light">Pricing</p>
-              <h1 className="text-3xl font-black tracking-tight text-mw-primary sm:text-4xl">Choose your plan</h1>
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-2">
+    <main className="bg-gradient-to-b from-mw-soft to-mw-bg">
+      <section className="mw-shell grid gap-6">
+        {/* Hero header */}
+        <header className="text-center py-6">
+          <p className="mw-section-label mb-2">Pricing</p>
+          <h1 className="text-4xl font-black tracking-tight text-mw-primary sm:text-5xl">
+            Choose your plan
+          </h1>
+          <p className="mx-auto mt-3 max-w-xl text-base text-mw-body">
+            Metra Wealth helps you <strong>track spending</strong>, <strong>stick to smart budget rules</strong>, and make{" "}
+            <strong>pre-spending decisions</strong> with confidence.
+          </p>
+          <div className="mt-5 flex flex-wrap justify-center gap-3">
             <a href="#compare" className="mw-btn-ghost">
               Compare Features
             </a>
             <a href="#cta" className="mw-btn-primary">
-              Get Started
+              Get Started Free
             </a>
           </div>
         </header>
 
-        <section className="mw-card p-6">
-          <p className="text-sm text-mw-body sm:text-base">
-            Metra Wealth helps you <b>track spending</b>, <b>stick to smart budget rules</b>, and make{" "}
-            <b>pre-spending decisions</b> with confidence without feeling restricted.
-          </p>
-        </section>
-
-        <section className="grid gap-4 lg:grid-cols-2">
+        {/* Pricing cards */}
+        <section className="grid gap-5 lg:grid-cols-2">
+          {/* Essential */}
           <article className="mw-card p-6">
-            <span className="inline-flex rounded-full border border-mw-border bg-[#f4fbfa] px-3 py-1 text-xs font-bold uppercase tracking-[0.08em] text-mw-primary">
-              Essential
-            </span>
+            <div className="mb-1 flex items-center gap-2">
+              <span className="inline-flex rounded-full border border-mw-border bg-mw-soft px-3 py-1 text-xs font-bold uppercase tracking-widest text-mw-primary">
+                Essential
+              </span>
+            </div>
             <h2 className="mt-4 text-2xl font-black tracking-tight text-mw-primary">Stay on top of your money</h2>
             <p className="mt-2 text-sm text-mw-body">
               Perfect for building consistent tracking habits and getting quick financial checks.
             </p>
 
-            <div className="mt-4 flex items-end gap-1">
-              <span className="text-4xl font-black text-mw-primary">$4.99</span>
-              <span className="mb-1 text-sm font-semibold text-mw-light">/mo</span>
+            <div className="mt-5 flex items-end gap-1">
+              <span className="text-5xl font-black tracking-tight text-mw-primary">$4.99</span>
+              <span className="mb-1.5 text-sm font-semibold text-mw-light">/month</span>
             </div>
-            <p className="mt-1 text-xs font-semibold uppercase tracking-[0.08em] text-mw-light">Cancel anytime • Beta pricing</p>
+            <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-mw-light">
+              Cancel anytime · Beta pricing
+            </p>
 
-            <a href="#cta" className="mw-btn-ghost mt-4 w-full">
+            <a href="#cta" className="mw-btn-ghost mt-5 w-full">
               Choose Essential
             </a>
 
-            <div className="my-5 h-px bg-mw-border" />
+            <div className="mw-divider" />
 
-            <h3 className="text-sm font-bold uppercase tracking-[0.08em] text-mw-primary">What you get</h3>
-            <ul className="mt-3 space-y-3">
-              <li className="flex gap-3 text-sm">
-                <span className="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#e8f8f5] text-xs font-bold text-[#0e7f73]">✓</span>
-                <span>
-                  <strong className="text-mw-primary">Smart Tracking</strong>
-                  <br />
-                  <span className="text-mw-body">Log income/expenses and see your month at a glance.</span>
-                </span>
-              </li>
-              <li className="flex gap-3 text-sm">
-                <span className="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#e8f8f5] text-xs font-bold text-[#0e7f73]">✓</span>
-                <span>
-                  <strong className="text-mw-primary">Health Dashboard</strong>
-                  <br />
-                  <span className="text-mw-body">Clear totals, category spend, and what is left.</span>
-                </span>
-              </li>
-              <li className="flex gap-3 text-sm">
-                <span className="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#e8f8f5] text-xs font-bold text-[#0e7f73]">✓</span>
-                <span>
-                  <strong className="text-mw-primary">Purchase Checks (Limited)</strong>
-                  <br />
-                  <span className="text-mw-body">Quick sanity checks to reduce impulse spending.</span>
-                </span>
-              </li>
+            <p className="mb-3 text-xs font-bold uppercase tracking-widest text-mw-primary">What you get</p>
+            <ul className="space-y-3">
+              {essentialFeatures.map((f) => (
+                <li key={f.label} className="flex gap-3 text-sm">
+                  <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-teal-50 text-xs font-bold text-teal-700 dark:bg-teal-950/50 dark:text-teal-300">
+                    ✓
+                  </span>
+                  <span>
+                    <strong className="text-mw-primary">{f.label}</strong>
+                    <br />
+                    <span className="text-mw-body">{f.detail}</span>
+                  </span>
+                </li>
+              ))}
             </ul>
           </article>
 
-          <article className="mw-card relative border-2 border-mw-accent bg-gradient-to-b from-white to-[#f2fcfa] p-6">
-            <span className="absolute -top-3 right-4 rounded-full bg-mw-primary px-3 py-1 text-xs font-bold uppercase tracking-[0.08em] text-white">
+          {/* Pro */}
+          <article className="mw-card relative overflow-hidden border-2 border-mw-accent bg-gradient-to-b from-white to-teal-50/50 p-6 dark:to-teal-950/10">
+            <span className="absolute right-4 top-0 -translate-y-1/2 rounded-full bg-gradient-to-r from-mw-accent to-mw-primary px-3 py-1 text-xs font-bold uppercase tracking-widest text-white shadow">
               Most Popular
             </span>
-            <span className="inline-flex rounded-full border border-mw-border bg-[#f4fbfa] px-3 py-1 text-xs font-bold uppercase tracking-[0.08em] text-mw-primary">
-              Pro
-            </span>
+            <div className="mb-1 flex items-center gap-2">
+              <span className="inline-flex rounded-full border border-mw-border bg-mw-soft px-3 py-1 text-xs font-bold uppercase tracking-widest text-mw-primary">
+                Pro
+              </span>
+            </div>
             <h2 className="mt-4 text-2xl font-black tracking-tight text-mw-primary">Spend smarter. Grow faster.</h2>
             <p className="mt-2 text-sm text-mw-body">
-              Full decision-support mode: budgeting rules, advanced insights, and customizable vibes.
+              Full decision-support mode: budgeting rules, advanced insights, and customizable settings.
             </p>
 
-            <div className="mt-4 flex items-end gap-1">
-              <span className="text-4xl font-black text-mw-primary">$9.99</span>
-              <span className="mb-1 text-sm font-semibold text-mw-light">/mo</span>
+            <div className="mt-5 flex items-end gap-1">
+              <span className="text-5xl font-black tracking-tight text-mw-primary">$9.99</span>
+              <span className="mb-1.5 text-sm font-semibold text-mw-light">/month</span>
             </div>
-            <p className="mt-1 text-xs font-semibold uppercase tracking-[0.08em] text-mw-light">Cancel anytime • Beta pricing</p>
+            <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-mw-light">
+              Cancel anytime · Beta pricing
+            </p>
 
-            <a href="#cta" className="mw-btn-primary mt-4 w-full">
+            <a href="#cta" className="mw-btn-primary mt-5 w-full">
               Choose Pro
             </a>
 
-            <div className="my-5 h-px bg-mw-border" />
+            <div className="mw-divider" />
 
-            <h3 className="text-sm font-bold uppercase tracking-[0.08em] text-mw-primary">Everything in Essential, plus:</h3>
-            <ul className="mt-3 space-y-3">
-              <li className="flex gap-3 text-sm">
-                <span className="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#e7f6f6] text-xs font-bold text-mw-primary">★</span>
-                <span>
-                  <strong className="text-mw-primary">Unlimited Purchase Checks</strong>
-                  <br />
-                  <span className="text-mw-body">Ask can I afford this? anytime you are about to buy.</span>
-                </span>
-              </li>
-              <li className="flex gap-3 text-sm">
-                <span className="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#e7f6f6] text-xs font-bold text-mw-primary">★</span>
-                <span>
-                  <strong className="text-mw-primary">Smart Budget Rules</strong>
-                  <br />
-                  <span className="text-mw-body">30/30/40 tracking plus custom splits.</span>
-                </span>
-              </li>
-              <li className="flex gap-3 text-sm">
-                <span className="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#e7f6f6] text-xs font-bold text-mw-primary">★</span>
-                <span>
-                  <strong className="text-mw-primary">Investment Insights</strong>
-                  <br />
-                  <span className="text-mw-body">Turn spare cash into strategy with live-rate refs.</span>
-                </span>
-              </li>
-              <li className="flex gap-3 text-sm">
-                <span className="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#e7f6f6] text-xs font-bold text-mw-primary">★</span>
-                <span>
-                  <strong className="text-mw-primary">Custom Assistant Tone</strong>
-                  <br />
-                  <span className="text-mw-body">Choose Pro Advisor or Money Buddy vibe.</span>
-                </span>
-              </li>
+            <p className="mb-3 text-xs font-bold uppercase tracking-widest text-mw-primary">
+              Everything in Essential, plus:
+            </p>
+            <ul className="space-y-3">
+              {proFeatures.map((f) => (
+                <li key={f.label} className="flex gap-3 text-sm">
+                  <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-mw-accent to-mw-primary text-[10px] font-bold text-white">
+                    ★
+                  </span>
+                  <span>
+                    <strong className="text-mw-primary">{f.label}</strong>
+                    <br />
+                    <span className="text-mw-body">{f.detail}</span>
+                  </span>
+                </li>
+              ))}
             </ul>
           </article>
         </section>
 
+        {/* Full feature comparison */}
         <section id="compare" className="mw-card p-6">
-          <div>
-            <h2 className="text-2xl font-black tracking-tight text-mw-primary">Full Feature Comparison</h2>
-            <p className="mt-1 text-sm text-mw-body">Everything you can do in Metra Wealth side-by-side.</p>
-          </div>
-          <div className="mt-4 overflow-x-auto">
-            <table className="min-w-[680px] w-full border-collapse text-sm">
+          <h2 className="text-2xl font-black tracking-tight text-mw-primary">Full Feature Comparison</h2>
+          <p className="mt-1 text-sm text-mw-body">Everything you can do in Metra Wealth — side by side.</p>
+
+          <div className="mt-5 overflow-x-auto">
+            <table className="min-w-[640px] w-full border-collapse text-sm">
               <thead>
-                <tr className="border-b border-mw-border bg-[#f8fefe]">
-                  <th className="px-3 py-3 text-left text-xs font-bold uppercase tracking-[0.08em] text-mw-primary">Feature</th>
-                  <th className="px-3 py-3 text-left text-xs font-bold uppercase tracking-[0.08em] text-mw-primary">Essential ($4.99/mo)</th>
-                  <th className="px-3 py-3 text-left text-xs font-bold uppercase tracking-[0.08em] text-mw-primary">Pro ($9.99/mo)</th>
+                <tr className="border-b-2 border-mw-border">
+                  <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-widest text-mw-light">Feature</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-widest text-mw-light">Essential <span className="font-normal normal-case tracking-normal">$4.99/mo</span></th>
+                  <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-widest text-mw-accent">Pro <span className="font-normal normal-case tracking-normal text-mw-light">$9.99/mo</span></th>
                 </tr>
               </thead>
               <tbody>
-                <tr className="border-b border-mw-border/60">
-                  <td className="px-3 py-3">Smart Income and Expense Tracking</td>
-                  <td className="px-3 py-3 font-semibold text-[#0f7b70]">✔ Full access</td>
-                  <td className="px-3 py-3 font-semibold text-[#0f7b70]">✔ Full access</td>
-                </tr>
-                <tr className="border-b border-mw-border/60">
-                  <td className="px-3 py-3">Monthly Financial Health Dashboard</td>
-                  <td className="px-3 py-3 font-semibold text-[#0f7b70]">✔</td>
-                  <td className="px-3 py-3 font-semibold text-[#0f7b70]">✔ Advanced</td>
-                </tr>
-                <tr className="border-b border-mw-border/60">
-                  <td className="px-3 py-3">Can I Afford This? Purchase Check</td>
-                  <td className="px-3 py-3">Limited checks</td>
-                  <td className="px-3 py-3 font-semibold text-[#0f7b70]">Unlimited</td>
-                </tr>
-                <tr className="border-b border-mw-border/60">
-                  <td className="px-3 py-3">Receipt Upload and Proof Storage</td>
-                  <td className="px-3 py-3">5GB vault</td>
-                  <td className="px-3 py-3">Upgraded vault</td>
-                </tr>
-                <tr className="border-b border-mw-border/60">
-                  <td className="px-3 py-3">30-30-40 Smart Budget Mode</td>
-                  <td className="px-3 py-3">Basic tracking</td>
-                  <td className="px-3 py-3 font-semibold text-[#0f7b70]">Customizable splits</td>
-                </tr>
-                <tr className="border-b border-mw-border/60">
-                  <td className="px-3 py-3">Investment Insight Suggestions</td>
-                  <td className="px-3 py-3 text-mw-light">-</td>
-                  <td className="px-3 py-3 font-semibold text-[#0f7b70]">✔ Gold and Index ideas</td>
-                </tr>
-                <tr className="border-b border-mw-border/60">
-                  <td className="px-3 py-3">Surplus Allocation Guidance</td>
-                  <td className="px-3 py-3 text-mw-light">-</td>
-                  <td className="px-3 py-3 font-semibold text-[#0f7b70]">✔ Personalized</td>
-                </tr>
-                <tr className="border-b border-mw-border/60">
-                  <td className="px-3 py-3">Choose Assistant Tone</td>
-                  <td className="px-3 py-3 text-mw-light">-</td>
-                  <td className="px-3 py-3 font-semibold text-[#0f7b70]">✔ Pro or Buddy</td>
-                </tr>
-                <tr className="border-b border-mw-border/60">
-                  <td className="px-3 py-3">Priority AI Performance</td>
-                  <td className="px-3 py-3">Standard</td>
-                  <td className="px-3 py-3 font-semibold text-[#0f7b70]">Faster responses</td>
-                </tr>
-                <tr>
-                  <td className="px-3 py-3">Custom Themes</td>
-                  <td className="px-3 py-3">Standard</td>
-                  <td className="px-3 py-3 font-semibold text-[#0f7b70]">Library access</td>
-                </tr>
+                {compareRows.map((row, i) => (
+                  <tr key={row.feature} className={`border-b border-mw-border/60 transition-colors hover:bg-mw-soft ${i % 2 === 0 ? "" : "bg-mw-soft/30"}`}>
+                    <td className="px-4 py-3.5 text-mw-dark">{row.feature}</td>
+                    <td className="px-4 py-3.5 text-mw-body">{row.essential}</td>
+                    <td className={`px-4 py-3.5 font-semibold ${row.proHighlight && row.pro !== "—" ? "text-teal-700 dark:text-teal-400" : "text-mw-body"}`}>
+                      {row.pro}
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
         </section>
 
-        <section id="cta" className="mw-card flex flex-wrap items-center justify-between gap-4 bg-gradient-to-r from-white to-[#eefaf8] p-6">
-          <div>
-            <h3 className="text-2xl font-black tracking-tight text-mw-primary">Ready to run your money like a system?</h3>
-            <p className="mt-1 text-sm text-mw-body">Start with Essential, upgrade anytime. Your data stays yours.</p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Link href="/register" className="mw-btn-ghost">
-              Download App
-            </Link>
-            <Link href="/register" className="mw-btn-primary">
-              Start Pro
-            </Link>
+        {/* CTA */}
+        <section id="cta" className="mw-card overflow-hidden bg-gradient-to-r from-mw-soft via-white to-teal-50/50 p-6 dark:from-mw-surface dark:via-mw-surface dark:to-teal-950/10">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h3 className="text-2xl font-black tracking-tight text-mw-primary">
+                Ready to run your money like a system?
+              </h3>
+              <p className="mt-1 text-sm text-mw-body">
+                Start with Essential, upgrade anytime. Your data stays yours.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Link href="/register" className="mw-btn-ghost">
+                Start Free
+              </Link>
+              <Link href="/register" className="mw-btn-primary">
+                Start Pro →
+              </Link>
+            </div>
           </div>
         </section>
 
-        <footer className="text-center text-xs font-semibold uppercase tracking-[0.08em] text-mw-light">
-          © {year} Metra Wealth • Beta pricing subject to change • Not financial advice
+        <footer className="pb-2 text-center text-xs font-semibold uppercase tracking-widest text-mw-light">
+          © {year} Metra Wealth · Beta pricing subject to change · Not financial advice
         </footer>
       </section>
     </main>

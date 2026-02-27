@@ -14,6 +14,8 @@
     --mw-border: 215 238 238;
     --mw-body: 74 101 105;
     --mw-dark: 11 42 47;
+    --mw-danger: 185 28 28;
+    --mw-success: 22 101 52;
   }
 
   .dark {
@@ -27,10 +29,13 @@
     --mw-border: 40 72 77;
     --mw-body: 179 207 209;
     --mw-dark: 233 245 246;
+    --mw-danger: 248 113 113;
+    --mw-success: 74 222 128;
   }
 
   body {
     @apply bg-mw-bg text-mw-dark antialiased transition-colors;
+    font-family: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
   }
 }
 
@@ -44,15 +49,19 @@
   }
 
   .mw-btn {
-    @apply inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-semibold transition;
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all duration-150;
   }
 
   .mw-btn-primary {
-    @apply mw-btn bg-gradient-to-r from-mw-accent to-mw-primary text-white shadow;
+    @apply mw-btn bg-gradient-to-r from-mw-accent to-mw-primary text-white shadow hover:opacity-90 hover:shadow-md active:scale-95;
   }
 
   .mw-btn-ghost {
-    @apply mw-btn border border-mw-border bg-mw-surface text-mw-primary hover:border-mw-light hover:bg-white/5;
+    @apply mw-btn border border-mw-border bg-mw-surface text-mw-primary hover:border-mw-light hover:bg-mw-soft active:scale-95;
+  }
+
+  .mw-btn-danger {
+    @apply mw-btn border border-red-200 bg-red-50 text-red-700 hover:bg-red-100 active:scale-95 dark:border-red-900 dark:bg-red-950/40 dark:text-red-400;
   }
 
   .mw-title {
@@ -68,6 +77,38 @@
   }
 
   .mw-input {
-    @apply w-full rounded-xl border border-mw-border px-3 py-2 text-sm outline-none ring-mw-accent/25 focus:ring-2;
+    @apply w-full rounded-xl border border-mw-border bg-mw-soft px-3 py-2.5 text-sm text-mw-dark placeholder:text-mw-body/50 outline-none transition ring-mw-accent/30 focus:border-mw-accent focus:ring-2;
+  }
+
+  .mw-badge {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-bold;
+  }
+
+  .mw-badge-income {
+    @apply mw-badge bg-teal-50 text-teal-700 dark:bg-teal-950/50 dark:text-teal-300;
+  }
+
+  .mw-badge-expense {
+    @apply mw-badge bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300;
+  }
+
+  .mw-badge-pro {
+    @apply mw-badge bg-gradient-to-r from-mw-accent to-mw-primary text-white;
+  }
+
+  .mw-stat-card {
+    @apply mw-card flex flex-col gap-1 p-5 transition-shadow hover:shadow-md;
+  }
+
+  .mw-divider {
+    @apply my-5 h-px w-full bg-mw-border;
+  }
+
+  .mw-page-header {
+    @apply mb-6 flex flex-wrap items-start justify-between gap-3;
+  }
+
+  .mw-section-label {
+    @apply text-xs font-bold uppercase tracking-widest text-mw-accent;
   }
 }
