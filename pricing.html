@@ -1,0 +1,677 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Metra Wealth — Pricing</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="icon" href="metra-wealth-logo-downloaded.png" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary: #0b4f5a;
+        --primary-light: #2a6a73;
+        --accent: #38c6b3;
+        --accent-glow: rgba(56, 198, 179, 0.2);
+        --bg-soft: white;
+        --bg-white: #ffffff;
+        --border: #d7eeee;
+        --border-light: #e7f6f6;
+        --text-dark: #0b2a2f;
+        --text-body: #4a6569;
+
+        --radius-lg: 20px;
+        --radius-md: 14px;
+        --radius-sm: 8px;
+        --shadow-card: 0 10px 30px rgba(11, 79, 90, 0.06);
+        --shadow-hover: 0 16px 40px rgba(11, 79, 90, 0.1);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family:
+          "Inter",
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          sans-serif;
+        color: var(--text-dark);
+        background: var(--bg-soft);
+        -webkit-font-smoothing: antialiased;
+        line-height: 1.5;
+      }
+
+      .container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 40px 24px 80px;
+      }
+
+      /* --- Header --- */
+      .header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        flex-wrap: wrap;
+        margin-bottom: 24px;
+      }
+
+      .brand-group {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+
+      .logo-img {
+        height: 52px;
+        width: auto;
+        display: block;
+      }
+
+      .brand-tag {
+        font-size: 12px;
+        color: var(--primary-light);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        font-weight: 700;
+        margin-bottom: 2px;
+      }
+
+      .brand-headline {
+        font-size: 24px;
+        line-height: 1.2;
+        font-weight: 800;
+        color: var(--primary);
+      }
+
+      .header-actions {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+      }
+
+      /* --- Buttons --- */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        padding: 10px 18px;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 14px;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        border: 1px solid transparent;
+      }
+
+      .btn-ghost {
+        background: var(--bg-white);
+        color: var(--primary);
+        border-color: var(--border);
+      }
+      .btn-ghost:hover {
+        background: var(--bg-soft);
+        border-color: var(--primary-light);
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, var(--accent), var(--primary));
+        color: #fff;
+        box-shadow: 0 4px 12px var(--accent-glow);
+      }
+      .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px var(--accent-glow);
+      }
+
+      .btn-card {
+        width: 100%;
+        padding: 12px;
+        margin-top: 20px;
+        font-weight: 800;
+      }
+
+      /* --- Subheadline --- */
+      .subheadline {
+        max-width: 720px;
+        color: var(--text-body);
+        font-size: 16px;
+        line-height: 1.7;
+        margin-bottom: 40px;
+      }
+      .subheadline b {
+        color: var(--primary);
+        font-weight: 600;
+      }
+
+      /* --- Pricing Grid --- */
+      .pricing-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        align-items: flex-start;
+      }
+
+      @media (max-width: 800px) {
+        .pricing-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* --- Cards --- */
+      .card {
+        background: var(--bg-white);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 28px;
+        box-shadow: var(--shadow-card);
+        transition:
+          transform 0.25s ease,
+          box-shadow 0.25s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-hover);
+      }
+
+      .card-featured {
+        border: 2px solid var(--accent);
+        background: linear-gradient(180deg, #ffffff 0%, #fbfefd 100%);
+        box-shadow: 0 14px 40px rgba(56, 198, 179, 0.15);
+      }
+
+      .card-featured:hover {
+        box-shadow: 0 20px 50px rgba(56, 198, 179, 0.25);
+      }
+
+      .badge {
+        display: inline-flex;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        margin-bottom: 16px;
+        background: #f0fafa;
+        color: var(--primary);
+        border: 1px solid var(--border);
+      }
+
+      .card-featured .badge {
+        background: rgba(56, 198, 179, 0.1);
+        color: #05655a;
+        border-color: rgba(56, 198, 179, 0.3);
+      }
+
+      .tag-popular {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: var(--accent);
+        color: #00332e;
+        font-size: 11px;
+        font-weight: 800;
+        padding: 5px 10px;
+        border-radius: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .card-header h2 {
+        font-size: 20px;
+        font-weight: 800;
+        color: var(--primary);
+        margin: 0 0 8px;
+      }
+
+      .card-desc {
+        font-size: 14px;
+        color: var(--primary-light);
+        margin-bottom: 20px;
+        min-height: 42px;
+      }
+
+      .price-tag {
+        display: flex;
+        align-items: baseline;
+        gap: 4px;
+        margin-bottom: 4px;
+      }
+
+      .price-val {
+        font-size: 42px;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        color: var(--primary);
+      }
+
+      .price-period {
+        font-size: 15px;
+        color: var(--primary-light);
+        font-weight: 600;
+      }
+
+      .price-sub {
+        font-size: 13px;
+        color: var(--text-body);
+        margin-bottom: 20px;
+        opacity: 0.8;
+      }
+
+      .divider {
+        height: 1px;
+        background: var(--border-light);
+        margin: 20px 0;
+      }
+
+      .features-title {
+        font-size: 13px;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: var(--primary);
+        letter-spacing: 0.05em;
+        margin-bottom: 16px;
+      }
+
+      .feature-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: grid;
+        gap: 14px;
+      }
+
+      .feature-item {
+        display: flex;
+        gap: 12px;
+        font-size: 14px;
+        color: var(--text-dark);
+        align-items: flex-start;
+      }
+
+      .feature-icon {
+        flex-shrink: 0;
+        width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f0fafa;
+        border-radius: 50%;
+        color: var(--accent);
+        font-size: 12px;
+        margin-top: 1px;
+      }
+
+      /* --- Comparison Table --- */
+      .table-wrapper {
+        margin-top: 60px;
+        background: var(--bg-white);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-card);
+        overflow: hidden;
+      }
+
+      .table-header {
+        padding: 20px 24px;
+        border-bottom: 1px solid var(--border-light);
+      }
+
+      .table-header h2 {
+        font-size: 18px;
+        font-weight: 800;
+        color: var(--primary);
+        margin: 0 0 4px;
+      }
+
+      .table-header p {
+        margin: 0;
+        font-size: 14px;
+        color: var(--text-body);
+      }
+
+      .table-scroll {
+        overflow-x: auto;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 600px;
+      }
+
+      th {
+        text-align: left;
+        padding: 14px 24px;
+        background: #f8fefe;
+        color: var(--primary);
+        font-size: 12px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        border-bottom: 2px solid var(--border);
+        position: sticky;
+        top: 0;
+        z-index: 1;
+      }
+
+      td {
+        padding: 16px 24px;
+        border-bottom: 1px solid var(--border-light);
+        font-size: 14px;
+        color: var(--text-dark);
+      }
+
+      tr:last-child td {
+        border-bottom: none;
+      }
+
+      tr:nth-child(even) {
+        background: #fafefe;
+      }
+
+      .cell-check {
+        color: var(--accent);
+        font-weight: 700;
+      }
+
+      .cell-na {
+        color: #ccc;
+      }
+
+      /* --- CTA Section --- */
+      .cta-section {
+        margin-top: 60px;
+        padding: 32px;
+        border-radius: var(--radius-lg);
+        background: linear-gradient(135deg, #ffffff 0%, #f3fbf9 100%);
+        border: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        flex-wrap: wrap;
+      }
+
+      .cta-text h3 {
+        margin: 0 0 6px;
+        font-size: 20px;
+        font-weight: 800;
+        color: var(--primary);
+      }
+
+      .cta-text p {
+        margin: 0;
+        font-size: 14px;
+        color: var(--text-body);
+        max-width: 400px;
+      }
+
+      .footer {
+        margin-top: 32px;
+        text-align: center;
+        font-size: 13px;
+        color: var(--primary-light);
+        opacity: 0.7;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- Header -->
+      <header class="header">
+        <div class="brand-group">
+          <!-- Replace src with your logo file path -->
+          <img
+            src="metra-wealth-logo.png"
+            alt="Metra Wealth"
+            class="logo-img"
+          />
+          <div>
+            <div class="brand-tag">Pricing</div>
+            <div class="brand-headline">Choose your plan</div>
+          </div>
+        </div>
+        <div class="header-actions">
+          <a href="#compare" class="btn btn-ghost">Compare Features</a>
+          <a href="#cta" class="btn btn-primary">Get Started</a>
+        </div>
+      </header>
+
+      <!-- Subheadline -->
+      <div class="subheadline">
+        Metra Wealth helps you <b>track spending</b>,
+        <b>stick to smart budget rules</b>, and make
+        <b>pre-spending decisions</b> with confidence — without feeling
+        restricted.
+      </div>
+
+      <!-- Pricing Cards Grid -->
+      <div class="pricing-grid">
+        <!-- Essential Plan -->
+        <div class="card">
+          <span class="badge">Essential</span>
+          <div class="card-header">
+            <h2>Stay on top of your money</h2>
+            <div class="card-desc">
+              Perfect for building consistent tracking habits and getting quick
+              financial checks.
+            </div>
+          </div>
+
+          <div class="price-tag">
+            <span class="price-val">$4.99</span>
+            <span class="price-period">/mo</span>
+          </div>
+          <div class="price-sub">Cancel anytime • Beta pricing</div>
+
+          <a href="#cta" class="btn btn-ghost btn-card">Choose Essential</a>
+
+          <div class="divider"></div>
+
+          <div class="features-title">What you get</div>
+          <ul class="feature-list">
+            <li class="feature-item">
+              <span class="feature-icon">✓</span>
+              <div>
+                <strong>Smart Tracking</strong><br />
+                <span style="color: var(--primary-light); font-size: 13px"
+                  >Log income/expenses & see your month at a glance.</span
+                >
+              </div>
+            </li>
+            <li class="feature-item">
+              <span class="feature-icon">✓</span>
+              <div>
+                <strong>Health Dashboard</strong><br />
+                <span style="color: var(--primary-light); font-size: 13px"
+                  >Clear totals, category spend, and "what’s left".</span
+                >
+              </div>
+            </li>
+            <li class="feature-item">
+              <span class="feature-icon">✓</span>
+              <div>
+                <strong>Purchase Checks (Limited)</strong><br />
+                <span style="color: var(--primary-light); font-size: 13px"
+                  >Quick sanity-checks to reduce impulse spending.</span
+                >
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Pro Plan -->
+        <div class="card card-featured">
+          <span class="tag-popular">Most Popular</span>
+          <span class="badge">Pro</span>
+          <div class="card-header">
+            <h2>Spend smarter. Grow faster.</h2>
+            <div class="card-desc">
+              Full decision-support mode — budgeting rules, advanced insights,
+              and customizable vibes.
+            </div>
+          </div>
+
+          <div class="price-tag">
+            <span class="price-val">$9.99</span>
+            <span class="price-period">/mo</span>
+          </div>
+          <div class="price-sub">Cancel anytime • Beta pricing</div>
+
+          <a href="#cta" class="btn btn-primary btn-card">Choose Pro</a>
+
+          <div class="divider"></div>
+
+          <div class="features-title">Everything in Essential, plus:</div>
+          <ul class="feature-list">
+            <li class="feature-item">
+              <span class="feature-icon">★</span>
+              <div>
+                <strong>Unlimited Purchase Checks</strong><br />
+                <span style="color: var(--primary-light); font-size: 13px"
+                  >Ask "can I afford this?" anytime you’re about to buy.</span
+                >
+              </div>
+            </li>
+            <li class="feature-item">
+              <span class="feature-icon">★</span>
+              <div>
+                <strong>Smart Budget Rules</strong><br />
+                <span style="color: var(--primary-light); font-size: 13px"
+                  >30/30/40 tracking + custom splits.</span
+                >
+              </div>
+            </li>
+            <li class="feature-item">
+              <span class="feature-icon">★</span>
+              <div>
+                <strong>Investment Insights</strong><br />
+                <span style="color: var(--primary-light); font-size: 13px"
+                  >Turn spare cash into strategy with live-rate refs.</span
+                >
+              </div>
+            </li>
+            <li class="feature-item">
+              <span class="feature-icon">★</span>
+              <div>
+                <strong>Custom Assistant Tone</strong><br />
+                <span style="color: var(--primary-light); font-size: 13px"
+                  >Choose Pro Advisor or Money Buddy vibe.</span
+                >
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Comparison Table -->
+      <div id="compare" class="table-wrapper">
+        <div class="table-header">
+          <h2>Full Feature Comparison</h2>
+          <p>Everything you can do in Metra Wealth — side-by-side.</p>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Feature</th>
+                <th>Essential ($4.99/mo)</th>
+                <th>Pro ($9.99/mo)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Smart Income & Expense Tracking</td>
+                <td class="cell-check">✔ Full access</td>
+                <td class="cell-check">✔ Full access</td>
+              </tr>
+              <tr>
+                <td>Monthly Financial Health Dashboard</td>
+                <td class="cell-check">✔</td>
+                <td class="cell-check">✔ Advanced</td>
+              </tr>
+              <tr>
+                <td>"Can I Afford This?" Purchase Check</td>
+                <td>Limited checks</td>
+                <td class="cell-check">Unlimited</td>
+              </tr>
+              <tr>
+                <td>Receipt Upload & Proof Storage</td>
+                <td>5GB vault</td>
+                <td>Upgraded vault</td>
+              </tr>
+              <tr>
+                <td>30-30-40 Smart Budget Mode</td>
+                <td>Basic tracking</td>
+                <td class="cell-check">Customizable splits</td>
+              </tr>
+              <tr>
+                <td>Investment Insight Suggestions</td>
+                <td class="cell-na">—</td>
+                <td class="cell-check">✔ Gold & Index ideas</td>
+              </tr>
+              <tr>
+                <td>Surplus Allocation Guidance</td>
+                <td class="cell-na">—</td>
+                <td class="cell-check">✔ Personalized</td>
+              </tr>
+              <tr>
+                <td>Choose Assistant Tone</td>
+                <td class="cell-na">—</td>
+                <td class="cell-check">✔ Pro or Buddy</td>
+              </tr>
+              <tr>
+                <td>Priority AI Performance</td>
+                <td>Standard</td>
+                <td class="cell-check">Faster responses</td>
+              </tr>
+              <tr>
+                <td>Custom Themes</td>
+                <td>Standard</td>
+                <td class="cell-check">Library access</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- CTA Section -->
+      <div id="cta" class="cta-section">
+        <div class="cta-text">
+          <h3>Ready to run your money like a system?</h3>
+          <p>Start with Essential, upgrade anytime. Your data stays yours.</p>
+        </div>
+        <div style="display: flex; gap: 12px; flex-shrink: 0">
+          <a href="#" class="btn btn-ghost">Download App</a>
+          <a href="#" class="btn btn-primary">Start Pro</a>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <footer class="footer">
+        © <span id="year"></span> Metra Wealth • Beta pricing subject to change
+        • Not financial advice
+      </footer>
+    </div>
+
+    <script>
+      document.getElementById("year").textContent = new Date().getFullYear();
+    </script>
+  </body>
+</html>
