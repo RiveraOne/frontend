@@ -998,3 +998,249 @@ tr:nth-child(even) {
   font-weight: 700;
   text-decoration: none;
 }
+
+.home-page {
+  padding: 34px 20px 20px;
+  background: linear-gradient(180deg, #f5fbfa 0%, #ffffff 24%);
+}
+
+.home-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  gap: 20px;
+}
+
+.home-hero {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  box-shadow: var(--shadow-card);
+  padding: 28px;
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 20px;
+}
+
+.home-hero h1 {
+  margin: 0;
+  color: var(--primary);
+  font-size: 42px;
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  max-width: 14ch;
+}
+
+.home-subtext {
+  margin-top: 12px;
+  max-width: 56ch;
+  color: var(--text-body);
+  font-size: 16px;
+}
+
+.home-proof {
+  margin-top: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.home-proof span {
+  border: 1px solid var(--border);
+  background: #f9fefe;
+  color: var(--primary-light);
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.lead-card {
+  background: linear-gradient(180deg, #ffffff 0%, #f4fbfa 100%);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 18px;
+}
+
+.lead-card h2 {
+  margin: 0;
+  color: var(--primary);
+  font-size: 22px;
+}
+
+.lead-card p {
+  margin: 6px 0 0;
+  color: var(--text-body);
+  font-size: 14px;
+}
+
+.lead-form {
+  margin-top: 14px;
+  display: grid;
+  gap: 8px;
+}
+
+.lead-form label {
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.lead-form input {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 14px;
+}
+
+.lead-form .btn {
+  margin-top: 8px;
+}
+
+.trust-strip {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: var(--shadow-card);
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.trust-strip span {
+  color: var(--primary-light);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.home-section {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow-card);
+  padding: 24px;
+}
+
+.home-section h2 {
+  margin: 0 0 14px;
+  color: var(--primary);
+  font-size: 28px;
+  letter-spacing: -0.01em;
+}
+
+.home-grid,
+.steps-grid,
+.preview-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.home-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.home-card,
+.step-card,
+.preview-card,
+.faq-item {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fbfefe;
+  padding: 16px;
+}
+
+.home-card h3,
+.step-card h3,
+.preview-card h3,
+.faq-item h3 {
+  margin: 0;
+  color: var(--primary);
+  font-size: 17px;
+}
+
+.home-card p,
+.step-card p,
+.preview-card p,
+.faq-item p {
+  margin: 8px 0 0;
+  color: var(--text-body);
+  font-size: 14px;
+}
+
+.steps-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.step-card span {
+  display: inline-flex;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--accent), var(--primary));
+  margin-bottom: 10px;
+}
+
+.preview-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-bottom: 12px;
+}
+
+.preview-card .price {
+  margin-top: 8px;
+  color: var(--primary);
+  font-size: 30px;
+  font-weight: 800;
+}
+
+.preview-card.highlight {
+  border-width: 2px;
+  border-color: var(--accent);
+  background: linear-gradient(180deg, #ffffff 0%, #f5fcfb 100%);
+}
+
+.faq {
+  display: grid;
+  gap: 10px;
+}
+
+.final-cta {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  background: linear-gradient(135deg, #ffffff 0%, #eefaf8 100%);
+  box-shadow: var(--shadow-card);
+}
+
+.final-cta h2 {
+  margin: 0;
+  color: var(--primary);
+  font-size: 30px;
+}
+
+.final-cta p {
+  margin: 8px 0 0;
+  color: var(--text-body);
+}
+
+@media (max-width: 900px) {
+  .home-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .home-hero h1 {
+    font-size: 34px;
+    max-width: none;
+  }
+
+  .home-grid,
+  .steps-grid,
+  .preview-grid {
+    grid-template-columns: 1fr;
+  }
+}
