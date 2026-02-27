@@ -100,16 +100,16 @@ export default function PricingPage() {
           </article>
 
           {/* Pro */}
-          <article className="mw-card relative overflow-hidden border-2 border-mw-accent bg-gradient-to-b from-white to-teal-50/50 p-6 dark:to-teal-950/10">
-            <span className="absolute right-4 top-0 -translate-y-1/2 rounded-full bg-gradient-to-r from-mw-accent to-mw-primary px-3 py-1 text-xs font-bold uppercase tracking-widest text-white shadow">
-              Most Popular
-            </span>
-            <div className="mb-1 flex items-center gap-2">
-              <span className="inline-flex rounded-full border border-mw-border bg-mw-soft px-3 py-1 text-xs font-bold uppercase tracking-widest text-mw-primary">
+          <article className="mw-card relative border-2 border-mw-accent bg-gradient-to-b from-mw-soft to-mw-bg p-6 dark:from-mw-surface dark:to-mw-bg">
+            <div className="mb-4 flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-mw-accent to-mw-primary px-3 py-1 text-xs font-bold uppercase tracking-widest text-white shadow-sm">
+                ★ Most Popular
+              </span>
+              <span className="inline-flex rounded-full border border-mw-accent/30 bg-mw-accent/10 px-3 py-1 text-xs font-bold uppercase tracking-widest text-mw-primary">
                 Pro
               </span>
             </div>
-            <h2 className="mt-4 text-2xl font-black tracking-tight text-mw-primary">Spend smarter. Grow faster.</h2>
+            <h2 className="text-2xl font-black tracking-tight text-mw-primary">Spend smarter. Grow faster.</h2>
             <p className="mt-2 text-sm text-mw-body">
               Full decision-support mode: budgeting rules, advanced insights, and customizable settings.
             </p>
