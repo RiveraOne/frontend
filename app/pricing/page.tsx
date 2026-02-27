@@ -35,20 +35,21 @@ export default function PricingPage() {
     <main className="bg-gradient-to-b from-mw-soft to-mw-bg">
       <section className="mw-shell grid gap-6">
         {/* Hero header */}
-        <header className="text-center py-6">
+        <header className="py-6 text-center">
           <p className="mw-section-label mb-2">Pricing</p>
           <h1 className="text-4xl font-black tracking-tight text-mw-primary sm:text-5xl">
             Choose your plan
           </h1>
           <p className="mx-auto mt-3 max-w-xl text-base text-mw-body">
-            Metra Wealth helps you <strong>track spending</strong>, <strong>stick to smart budget rules</strong>, and make{" "}
+            Metra Wealth helps you <strong>track spending</strong>,{" "}
+            <strong>stick to smart budget rules</strong>, and make{" "}
             <strong>pre-spending decisions</strong> with confidence.
           </p>
-          <div className="mt-5 flex flex-wrap justify-center gap-3">
-            <a href="#compare" className="mw-btn-ghost">
+          <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:justify-center">
+            <a href="#compare" className="mw-btn-ghost w-full sm:w-auto">
               Compare Features
             </a>
-            <a href="#cta" className="mw-btn-primary">
+            <a href="#cta" className="mw-btn-primary w-full sm:w-auto">
               Get Started Free
             </a>
           </div>
@@ -63,7 +64,9 @@ export default function PricingPage() {
                 Essential
               </span>
             </div>
-            <h2 className="mt-4 text-2xl font-black tracking-tight text-mw-primary">Stay on top of your money</h2>
+            <h2 className="mt-4 text-2xl font-black tracking-tight text-mw-primary">
+              Stay on top of your money
+            </h2>
             <p className="mt-2 text-sm text-mw-body">
               Perfect for building consistent tracking habits and getting quick financial checks.
             </p>
@@ -82,7 +85,9 @@ export default function PricingPage() {
 
             <div className="mw-divider" />
 
-            <p className="mb-3 text-xs font-bold uppercase tracking-widest text-mw-primary">What you get</p>
+            <p className="mb-3 text-xs font-bold uppercase tracking-widest text-mw-primary">
+              What you get
+            </p>
             <ul className="space-y-3">
               {essentialFeatures.map((f) => (
                 <li key={f.label} className="flex gap-3 text-sm">
@@ -109,7 +114,9 @@ export default function PricingPage() {
                 Pro
               </span>
             </div>
-            <h2 className="text-2xl font-black tracking-tight text-mw-primary">Spend smarter. Grow faster.</h2>
+            <h2 className="text-2xl font-black tracking-tight text-mw-primary">
+              Spend smarter. Grow faster.
+            </h2>
             <p className="mt-2 text-sm text-mw-body">
               Full decision-support mode: budgeting rules, advanced insights, and customizable settings.
             </p>
@@ -150,21 +157,64 @@ export default function PricingPage() {
 
         {/* Full feature comparison */}
         <section id="compare" className="mw-card p-6">
-          <h2 className="text-2xl font-black tracking-tight text-mw-primary">Full Feature Comparison</h2>
-          <p className="mt-1 text-sm text-mw-body">Everything you can do in Metra Wealth — side by side.</p>
+          <h2 className="text-2xl font-black tracking-tight text-mw-primary">
+            Full Feature Comparison
+          </h2>
+          <p className="mt-1 text-sm text-mw-body">
+            Everything you can do in Metra Wealth — side by side.
+          </p>
 
-          <div className="mt-5 overflow-x-auto">
-            <table className="min-w-[640px] w-full border-collapse text-sm">
+          {/* Mobile: stacked cards */}
+          <div className="mt-5 space-y-3 sm:hidden">
+            {compareRows.map((row) => (
+              <div key={row.feature} className="rounded-xl border border-mw-border bg-mw-soft/50 p-4">
+                <p className="mb-3 text-sm font-semibold text-mw-dark">{row.feature}</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-mw-light">
+                      Essential
+                    </p>
+                    <p className="text-sm text-mw-body">{row.essential}</p>
+                  </div>
+                  <div>
+                    <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-mw-accent">
+                      Pro
+                    </p>
+                    <p className={`text-sm font-semibold ${row.proHighlight && row.pro !== "—" ? "text-teal-700 dark:text-teal-400" : "text-mw-body"}`}>
+                      {row.pro}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop: table */}
+          <div className="mt-5 hidden overflow-x-auto sm:block">
+            <table className="w-full min-w-[560px] border-collapse text-sm">
               <thead>
                 <tr className="border-b-2 border-mw-border">
-                  <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-widest text-mw-light">Feature</th>
-                  <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-widest text-mw-light">Essential <span className="font-normal normal-case tracking-normal">$4.99/mo</span></th>
-                  <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-widest text-mw-accent">Pro <span className="font-normal normal-case tracking-normal text-mw-light">$9.99/mo</span></th>
+                  <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-widest text-mw-light">
+                    Feature
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-widest text-mw-light">
+                    Essential{" "}
+                    <span className="font-normal normal-case tracking-normal">$4.99/mo</span>
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-widest text-mw-accent">
+                    Pro{" "}
+                    <span className="font-normal normal-case tracking-normal text-mw-light">
+                      $9.99/mo
+                    </span>
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {compareRows.map((row, i) => (
-                  <tr key={row.feature} className={`border-b border-mw-border/60 transition-colors hover:bg-mw-soft ${i % 2 === 0 ? "" : "bg-mw-soft/30"}`}>
+                  <tr
+                    key={row.feature}
+                    className={`border-b border-mw-border/60 transition-colors hover:bg-mw-soft ${i % 2 === 0 ? "" : "bg-mw-soft/30"}`}
+                  >
                     <td className="px-4 py-3.5 text-mw-dark">{row.feature}</td>
                     <td className="px-4 py-3.5 text-mw-body">{row.essential}</td>
                     <td className={`px-4 py-3.5 font-semibold ${row.proHighlight && row.pro !== "—" ? "text-teal-700 dark:text-teal-400" : "text-mw-body"}`}>
@@ -178,21 +228,24 @@ export default function PricingPage() {
         </section>
 
         {/* CTA */}
-        <section id="cta" className="mw-card overflow-hidden bg-gradient-to-r from-mw-soft via-white to-teal-50/50 p-6 dark:from-mw-surface dark:via-mw-surface dark:to-teal-950/10">
-          <div className="flex flex-wrap items-center justify-between gap-4">
+        <section
+          id="cta"
+          className="mw-card overflow-hidden bg-gradient-to-r from-mw-soft via-white to-teal-50/50 p-6 dark:from-mw-surface dark:via-mw-surface dark:to-teal-950/10"
+        >
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h3 className="text-2xl font-black tracking-tight text-mw-primary">
+              <h3 className="text-xl font-black tracking-tight text-mw-primary sm:text-2xl">
                 Ready to run your money like a system?
               </h3>
               <p className="mt-1 text-sm text-mw-body">
                 Start with Essential, upgrade anytime. Your data stays yours.
               </p>
             </div>
-            <div className="flex flex-wrap gap-2">
-              <Link href="/register" className="mw-btn-ghost">
+            <div className="flex flex-col gap-2 sm:flex-row sm:flex-shrink-0">
+              <Link href="/register" className="mw-btn-ghost w-full sm:w-auto">
                 Start Free
               </Link>
-              <Link href="/register" className="mw-btn-primary">
+              <Link href="/register" className="mw-btn-primary w-full sm:w-auto">
                 Start Pro →
               </Link>
             </div>
