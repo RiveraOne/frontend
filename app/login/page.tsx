@@ -2,24 +2,29 @@ import Link from "next/link";
 
 export default function LoginPage() {
   return (
-    <main className="simple-page">
-      <section className="simple-card auth-card">
-        <h1>Login</h1>
-        <p>Access your Metra Wealth dashboard.</p>
-        <form className="auth-form">
-          <label htmlFor="email">Email</label>
-          <input id="email" type="email" placeholder="you@example.com" />
+    <main className="bg-gradient-to-b from-[#f5fbfa] to-white">
+      <section className="mw-shell grid place-items-center">
+        <div className="mw-card w-full max-w-md p-7">
+          <h1 className="mw-title">Login</h1>
+          <p className="mt-1 text-sm text-mw-body">Access your Metra Wealth dashboard.</p>
 
-          <label htmlFor="password">Password</label>
-          <input id="password" type="password" placeholder="Enter your password" />
+          <form className="mt-5 grid gap-2" action="/dashboard">
+            <label htmlFor="email" className="mw-label">Email</label>
+            <input id="email" type="email" placeholder="you@example.com" className="mw-input" />
 
-          <button type="submit" className="btn btn-primary">
-            Login
-          </button>
-        </form>
-        <p className="auth-meta">
-          New here? <Link href="/register">Create an account</Link>
-        </p>
+            <label htmlFor="password" className="mw-label">Password</label>
+            <input id="password" type="password" placeholder="Enter your password" className="mw-input" />
+
+            <button type="submit" className="mw-btn-primary mt-3 w-full">Login</button>
+          </form>
+
+          <p className="mt-4 text-sm text-mw-body">
+            New here?{" "}
+            <Link href="/register" className="font-bold text-mw-primary hover:text-mw-light">
+              Create an account
+            </Link>
+          </p>
+        </div>
       </section>
     </main>
   );

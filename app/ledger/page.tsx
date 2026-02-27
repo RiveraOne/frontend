@@ -21,54 +21,55 @@ export default function LedgerPage() {
   }, [selectedMonth]);
 
   return (
-    <main className="app-shell">
-      <section className="app-section">
-        <div className="section-head">
-          <div>
-            <h1>Ledger</h1>
-            <p className="app-muted">Local dummy transactions only.</p>
+    <main>
+      <section className="mw-shell">
+        <div className="mw-card p-6">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h1 className="mw-title">Ledger</h1>
+              <p className="mt-1 text-sm text-mw-body">Local dummy transactions only.</p>
+            </div>
+            <Link href="/ledger/new" className="mw-btn-primary">Add Transaction</Link>
           </div>
-          <Link href="/ledger/new" className="btn btn-primary">
-            Add Transaction
-          </Link>
-        </div>
 
-        <label className="filter-row" htmlFor="month-filter">
-          <span>Filter by month</span>
-          <select
-            id="month-filter"
-            value={selectedMonth}
-            onChange={(e) => setSelectedMonth(e.target.value)}
-          >
-            {months.map((month) => (
-              <option key={month} value={month}>
-                {month === "all" ? "All months" : month}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <div className="table-wrap">
-          <table className="ledger-table">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Type</th>
-                <th>Amount</th>
-                <th>Category</th>
-              </tr>
-            </thead>
-            <tbody>
-              {transactions.map((item) => (
-                <tr key={item.id}>
-                  <td>{item.date}</td>
-                  <td>{item.type}</td>
-                  <td>${item.amount.toLocaleString()}</td>
-                  <td>{item.category}</td>
-                </tr>
+          <label className="mt-4 flex flex-wrap items-center gap-2" htmlFor="month-filter">
+            <span className="text-sm font-semibold text-mw-light">Filter by month</span>
+            <select
+              id="month-filter"
+              className="mw-input w-auto min-w-[150px]"
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value)}
+            >
+              {months.map((month) => (
+                <option key={month} value={month}>
+                  {month === "all" ? "All months" : month}
+                </option>
               ))}
-            </tbody>
-          </table>
+            </select>
+          </label>
+
+          <div className="mt-4 overflow-x-auto">
+            <table className="min-w-[560px] w-full border-collapse text-sm">
+              <thead>
+                <tr className="border-b border-mw-border bg-[#f8fefe]">
+                  <th className="px-3 py-3 text-left text-xs font-bold uppercase tracking-[0.08em] text-mw-primary">Date</th>
+                  <th className="px-3 py-3 text-left text-xs font-bold uppercase tracking-[0.08em] text-mw-primary">Type</th>
+                  <th className="px-3 py-3 text-left text-xs font-bold uppercase tracking-[0.08em] text-mw-primary">Amount</th>
+                  <th className="px-3 py-3 text-left text-xs font-bold uppercase tracking-[0.08em] text-mw-primary">Category</th>
+                </tr>
+              </thead>
+              <tbody>
+                {transactions.map((item) => (
+                  <tr key={item.id} className="border-b border-mw-border/60">
+                    <td className="px-3 py-3">{item.date}</td>
+                    <td className="px-3 py-3">{item.type}</td>
+                    <td className="px-3 py-3">${item.amount.toLocaleString()}</td>
+                    <td className="px-3 py-3">{item.category}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </section>
     </main>

@@ -3,8 +3,8 @@ import Link from "next/link";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Metra Wealth - Pricing",
-  description: "Pricing plans for Metra Wealth"
+  title: "Metra Wealth",
+  description: "AI financial companion"
 };
 
 export default function RootLayout({
@@ -17,60 +17,73 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <header className="site-nav">
-          <div className="site-nav-inner">
-            <div className="site-nav-left">
-              <Link href="/" className="site-logo">
-                <span className="site-logo-mark" />
-                <span className="site-logo-text">Metra Wealth</span>
+        <header className="sticky top-0 z-20 border-b border-mw-border/70 bg-white/90 backdrop-blur">
+          <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-3 px-5 py-3">
+            <div className="flex items-center gap-3">
+              <Link href="/" className="inline-flex items-center gap-2">
+                <span className="h-3 w-3 rounded-full bg-gradient-to-br from-mw-accent to-mw-primary shadow-[0_0_0_4px_rgba(56,198,179,0.18)]" />
+                <span className="text-base font-extrabold tracking-tight text-mw-primary">Metra Wealth</span>
               </Link>
-              <nav className="site-nav-links" aria-label="Primary">
-                <Link href="/">Home</Link>
-                <Link href="/pricing">Pricing</Link>
+              <nav className="hidden items-center gap-1 sm:flex" aria-label="Primary">
+                <Link href="/" className="rounded-lg px-3 py-2 text-sm font-semibold text-mw-light hover:bg-slate-50 hover:text-mw-primary">
+                  Home
+                </Link>
+                <Link href="/pricing" className="rounded-lg px-3 py-2 text-sm font-semibold text-mw-light hover:bg-slate-50 hover:text-mw-primary">
+                  Pricing
+                </Link>
+                <Link href="/dashboard" className="rounded-lg px-3 py-2 text-sm font-semibold text-mw-light hover:bg-slate-50 hover:text-mw-primary">
+                  Dashboard
+                </Link>
               </nav>
             </div>
-            <div className="site-nav-actions">
-              <Link href="/login" className="btn btn-ghost btn-nav">
+            <div className="flex items-center gap-2">
+              <Link href="/login" className="mw-btn-ghost">
                 Login
               </Link>
-              <Link href="/register" className="btn btn-primary btn-nav">
+              <Link href="/register" className="mw-btn-primary">
                 Get Started
               </Link>
             </div>
           </div>
         </header>
+
         {children}
-        <footer className="site-footer">
-          <div className="site-footer-inner">
-            <div className="site-footer-brand">
-              <div className="site-logo">
-                <span className="site-logo-mark" />
-                <span className="site-logo-text">Metra Wealth</span>
+
+        <footer className="mt-12 border-t border-mw-border bg-gradient-to-b from-white to-[#f4fbfa]">
+          <div className="mx-auto grid w-full max-w-6xl gap-8 px-5 py-8 md:grid-cols-[1.3fr_1fr]">
+            <div>
+              <div className="inline-flex items-center gap-2">
+                <span className="h-3 w-3 rounded-full bg-gradient-to-br from-mw-accent to-mw-primary" />
+                <span className="text-base font-extrabold tracking-tight text-mw-primary">Metra Wealth</span>
               </div>
-              <p>
+              <p className="mt-3 max-w-md text-sm text-mw-body">
                 Better decisions before you spend. Build healthy financial systems with confidence.
               </p>
             </div>
-            <div className="site-footer-links">
+            <div className="grid grid-cols-2 gap-6">
               <div>
-                <h4>Product</h4>
-                <Link href="/">Home</Link>
-                <Link href="/pricing">Pricing</Link>
-                <Link href="/dashboard">Dashboard</Link>
+                <h4 className="mb-2 text-xs font-bold uppercase tracking-[0.08em] text-mw-primary">Product</h4>
+                <div className="space-y-2 text-sm">
+                  <Link href="/" className="block text-mw-light hover:text-mw-primary">Home</Link>
+                  <Link href="/pricing" className="block text-mw-light hover:text-mw-primary">Pricing</Link>
+                  <Link href="/advisor" className="block text-mw-light hover:text-mw-primary">Advisor</Link>
+                </div>
               </div>
               <div>
-                <h4>Account</h4>
-                <Link href="/login">Login</Link>
-                <Link href="/register">Register</Link>
-                <Link href="/settings">Settings</Link>
+                <h4 className="mb-2 text-xs font-bold uppercase tracking-[0.08em] text-mw-primary">Account</h4>
+                <div className="space-y-2 text-sm">
+                  <Link href="/login" className="block text-mw-light hover:text-mw-primary">Login</Link>
+                  <Link href="/register" className="block text-mw-light hover:text-mw-primary">Register</Link>
+                  <Link href="/settings" className="block text-mw-light hover:text-mw-primary">Settings</Link>
+                </div>
               </div>
             </div>
           </div>
-          <div className="site-footer-bottom">
+          <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-2 border-t border-mw-border px-5 py-4 text-xs text-mw-light">
             <span>© {year} Metra Wealth</span>
-            <span className="site-footer-legal">
-              <Link href="/privacy">Privacy</Link>
-              <Link href="/terms">Terms</Link>
+            <span className="inline-flex items-center gap-3">
+              <Link href="/privacy" className="hover:text-mw-primary">Privacy</Link>
+              <Link href="/terms" className="hover:text-mw-primary">Terms</Link>
             </span>
             <span>Not financial advice</span>
           </div>

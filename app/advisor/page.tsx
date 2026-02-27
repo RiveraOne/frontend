@@ -57,32 +57,44 @@ export default function AdvisorPage() {
   };
 
   return (
-    <main className="app-shell">
-      <section className="app-section narrow">
-        <div className="section-head">
-          <h1>AI Advisor</h1>
-          <span className="usage-pill">{usageLabel}</span>
-        </div>
+    <main>
+      <section className="mw-shell">
+        <div className="mw-card mx-auto w-full max-w-3xl p-6">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h1 className="mw-title">AI Advisor</h1>
+            <span className="rounded-full border border-[#d3f0eb] bg-[#eefaf8] px-3 py-1 text-xs font-bold text-[#05655a]">
+              {usageLabel}
+            </span>
+          </div>
 
-        <div className="chat-box">
-          {messages.map((message, index) => (
-            <div key={`${message.role}-${index}`} className={`bubble ${message.role}`}>
-              {message.text}
-            </div>
-          ))}
-        </div>
+          <div className="mt-4 grid max-h-[420px] min-h-[280px] gap-2 overflow-y-auto rounded-xl border border-mw-border bg-[#fbfefe] p-3">
+            {messages.map((message, index) => (
+              <div
+                key={`${message.role}-${index}`}
+                className={`max-w-[82%] rounded-xl px-3 py-2 text-sm ${
+                  message.role === "user"
+                    ? "ml-auto bg-mw-primary text-white"
+                    : "bg-[#e9f8f6] text-mw-dark"
+                }`}
+              >
+                {message.text}
+              </div>
+            ))}
+          </div>
 
-        <form className="chat-form" onSubmit={onSubmit}>
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Ask: Can I afford 200?"
-          />
-          <button className="btn btn-primary" type="submit">
-            Send
-          </button>
-        </form>
+          <form className="mt-3 flex gap-2 max-sm:flex-col" onSubmit={onSubmit}>
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Ask: Can I afford 200?"
+              className="mw-input"
+            />
+            <button className="mw-btn-primary" type="submit">
+              Send
+            </button>
+          </form>
+        </div>
       </section>
     </main>
   );
