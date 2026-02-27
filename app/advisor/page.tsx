@@ -44,15 +44,23 @@ export default function AdvisorPage() {
   const [query, setQuery] = useState("");
   const [used, setUsed] = useState(0);
   const [isTyping, setIsTyping] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const isInitialMount = useRef(true);
 
   const remaining = MAX_FREE - used;
   const isAtLimit = used >= MAX_FREE;
   const usagePercent = Math.round((used / MAX_FREE) * 100);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+    const container = messagesContainerRef.current;
+    if (container) {
+      container.scrollTop = container.scrollHeight;
+    }
   }, [messages, isTyping]);
 
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -109,7 +117,7 @@ export default function AdvisorPage() {
           {/* Chat window */}
           <div className="mw-card flex flex-1 flex-col overflow-hidden">
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 space-y-3">
               {messages.map((message, index) => (
                 <div
                   key={`${message.role}-${index}`}
@@ -155,7 +163,6 @@ export default function AdvisorPage() {
                 </div>
               )}
 
-              <div ref={messagesEndRef} />
             </div>
 
             {/* Suggestions (only show at start) */}
