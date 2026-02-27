@@ -3,8 +3,34 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    color-scheme: light;
+    --mw-bg: 255 255 255;
+    --mw-surface: 255 255 255;
+    --mw-soft: 244 251 250;
+    --mw-primary: 11 79 90;
+    --mw-light: 42 106 115;
+    --mw-accent: 56 198 179;
+    --mw-border: 215 238 238;
+    --mw-body: 74 101 105;
+    --mw-dark: 11 42 47;
+  }
+
+  .dark {
+    color-scheme: dark;
+    --mw-bg: 8 19 23;
+    --mw-surface: 13 30 35;
+    --mw-soft: 10 26 30;
+    --mw-primary: 101 215 203;
+    --mw-light: 143 191 195;
+    --mw-accent: 56 198 179;
+    --mw-border: 40 72 77;
+    --mw-body: 179 207 209;
+    --mw-dark: 233 245 246;
+  }
+
   body {
-    @apply bg-white text-mw-dark antialiased;
+    @apply bg-mw-bg text-mw-dark antialiased transition-colors;
   }
 }
 
@@ -14,7 +40,7 @@
   }
 
   .mw-card {
-    @apply rounded-2xl border border-mw-border bg-white shadow-sm;
+    @apply rounded-2xl border border-mw-border bg-mw-surface shadow-sm;
   }
 
   .mw-btn {
@@ -26,7 +52,7 @@
   }
 
   .mw-btn-ghost {
-    @apply mw-btn border border-mw-border bg-white text-mw-primary hover:border-mw-light hover:bg-slate-50;
+    @apply mw-btn border border-mw-border bg-mw-surface text-mw-primary hover:border-mw-light hover:bg-white/5;
   }
 
   .mw-title {

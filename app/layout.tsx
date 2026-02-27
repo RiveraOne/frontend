@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import "./globals.css";
+import ThemeToggle from "./theme-toggle";
 
 export const metadata: Metadata = {
   title: "Metra Wealth",
@@ -15,9 +16,17 @@ export default function RootLayout({
   const year = new Date().getFullYear();
 
   return (
-    <html lang="en">
-      <body>
-        <header className="sticky top-0 z-20 border-b border-mw-border/70 bg-white/90 backdrop-blur">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "(function(){try{var t=localStorage.getItem('theme');var d=window.matchMedia('(prefers-color-scheme: dark)').matches;var m=t||(d?'dark':'light');document.documentElement.classList.toggle('dark',m==='dark');document.documentElement.style.colorScheme=m;}catch(e){}})();"
+          }}
+        />
+      </head>
+      <body className="flex min-h-screen flex-col bg-mw-bg">
+        <header className="sticky top-0 z-20 border-b border-mw-border/70 bg-mw-bg/90 backdrop-blur">
           <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-3 px-5 py-3">
             <div className="flex items-center gap-3">
               <Link href="/" className="inline-flex items-center gap-2">
@@ -25,18 +34,19 @@ export default function RootLayout({
                 <span className="text-base font-extrabold tracking-tight text-mw-primary">Metra Wealth</span>
               </Link>
               <nav className="hidden items-center gap-1 sm:flex" aria-label="Primary">
-                <Link href="/" className="rounded-lg px-3 py-2 text-sm font-semibold text-mw-light hover:bg-slate-50 hover:text-mw-primary">
+                <Link href="/" className="rounded-lg px-3 py-2 text-sm font-semibold text-mw-light hover:bg-white/5 hover:text-mw-primary">
                   Home
                 </Link>
-                <Link href="/pricing" className="rounded-lg px-3 py-2 text-sm font-semibold text-mw-light hover:bg-slate-50 hover:text-mw-primary">
+                <Link href="/pricing" className="rounded-lg px-3 py-2 text-sm font-semibold text-mw-light hover:bg-white/5 hover:text-mw-primary">
                   Pricing
                 </Link>
-                <Link href="/dashboard" className="rounded-lg px-3 py-2 text-sm font-semibold text-mw-light hover:bg-slate-50 hover:text-mw-primary">
+                <Link href="/dashboard" className="rounded-lg px-3 py-2 text-sm font-semibold text-mw-light hover:bg-white/5 hover:text-mw-primary">
                   Dashboard
                 </Link>
               </nav>
             </div>
             <div className="flex items-center gap-2">
+              <ThemeToggle />
               <Link href="/login" className="mw-btn-ghost">
                 Login
               </Link>
@@ -47,9 +57,9 @@ export default function RootLayout({
           </div>
         </header>
 
-        {children}
+        <div className="flex-1">{children}</div>
 
-        <footer className="mt-12 border-t border-mw-border bg-gradient-to-b from-white to-[#f4fbfa]">
+        <footer className="mt-auto border-t border-mw-border bg-gradient-to-b from-mw-surface to-mw-soft">
           <div className="mx-auto grid w-full max-w-6xl gap-8 px-5 py-8 md:grid-cols-[1.3fr_1fr]">
             <div>
               <div className="inline-flex items-center gap-2">
