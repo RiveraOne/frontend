@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { mockTransactions } from "@/lib/mock-data";
 
 export default function LedgerPage() {
+  const router = useRouter();
   const [selectedMonth, setSelectedMonth] = useState("all");
 
   const months = useMemo(() => {
@@ -93,13 +95,15 @@ export default function LedgerPage() {
                   <th className="px-5 py-3 text-left text-xs font-bold uppercase tracking-widest text-mw-light">Type</th>
                   <th className="px-5 py-3 text-left text-xs font-bold uppercase tracking-widest text-mw-light">Category</th>
                   <th className="px-5 py-3 text-right text-xs font-bold uppercase tracking-widest text-mw-light">Amount</th>
+                  <th className="px-5 py-3" />
                 </tr>
               </thead>
               <tbody>
                 {sorted.map((item, i) => (
                   <tr
                     key={item.id}
-                    className={`border-b border-mw-border/50 transition-colors hover:bg-mw-soft ${i % 2 === 0 ? "" : "bg-mw-soft/40"}`}
+                    onClick={() => router.push(`/ledger/${item.id}`)}
+                    className={`cursor-pointer border-b border-mw-border/50 transition-colors hover:bg-mw-soft ${i % 2 === 0 ? "" : "bg-mw-soft/40"}`}
                   >
                     <td className="px-5 py-3.5 text-sm text-mw-body">{item.date}</td>
                     <td className="px-5 py-3.5">
@@ -111,11 +115,16 @@ export default function LedgerPage() {
                     <td className={`px-5 py-3.5 text-right text-sm font-bold ${item.type === "Income" ? "text-teal-600 dark:text-teal-400" : "text-rose-600 dark:text-rose-400"}`}>
                       {item.type === "Income" ? "+" : "-"}${item.amount.toLocaleString()}
                     </td>
+                    <td className="px-5 py-3.5 text-right text-mw-light">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M5 12h14M12 5l7 7-7 7" />
+                      </svg>
+                    </td>
                   </tr>
                 ))}
                 {sorted.length === 0 && (
                   <tr>
-                    <td colSpan={4} className="px-5 py-12 text-center text-sm text-mw-body">
+                    <td colSpan={5} className="px-5 py-12 text-center text-sm text-mw-body">
                       No transactions for this period.
                     </td>
                   </tr>
