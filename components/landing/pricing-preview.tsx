@@ -15,26 +15,26 @@ export default function PricingPreview() {
             Simple plans for every stage.
           </h2>
           <p className="mt-3 max-w-[50ch] text-base font-light leading-relaxed text-mw-body">
-            Start free, scale when you&apos;re ready. No hidden fees, no long-term lock-in.
+            Two simple plans, cancel anytime. No hidden fees, no long-term lock-in.
           </p>
         </FadeIn>
 
         <StaggerChildren className="mt-12 grid gap-5 sm:grid-cols-2" staggerDelay={0.18}>
-          {/* Free */}
+          {/* Essential */}
           <motion.article
             variants={staggerItemVariants}
             className="mw-card p-7 hover:-translate-y-1 hover:shadow-lg hover:shadow-mw-accent/10"
           >
-            <p className="mw-section-label mb-4">Free plan</p>
+            <p className="mw-section-label mb-4">Essential plan</p>
             <div className="flex items-end gap-1">
-              <span className="text-5xl font-black tracking-tight text-mw-primary">$0</span>
+              <span className="text-5xl font-black tracking-tight text-mw-primary">$4.99</span>
               <span className="mb-1.5 text-sm text-mw-body">/ month</span>
             </div>
             <p className="mt-4 text-sm font-light leading-relaxed text-mw-body">
               Core tracking, dashboard view, and basic advisor access. Perfect for getting started.
             </p>
             <Link href="/register" className="mw-btn-ghost mt-6 w-full">
-              Start for free →
+              Get Essential →
             </Link>
           </motion.article>
 
