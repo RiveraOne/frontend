@@ -1,6 +1,45 @@
+"use client";
+
 import Link from "next/link";
+import { useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
+import { registerWithEmail, loginWithGoogle } from "@/lib/firebase";
 
 export default function RegisterPage() {
+  const router = useRouter();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+    try {
+      await registerWithEmail(name, email, password);
+      router.push("/dashboard");
+    } catch (err: unknown) {
+      setError(getAuthError(err));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleGoogle() {
+    setError("");
+    setLoading(true);
+    try {
+      await loginWithGoogle();
+      router.push("/dashboard");
+    } catch (err: unknown) {
+      setError(getAuthError(err));
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <main className="flex min-h-[calc(100vh-4rem)]">
 
@@ -103,7 +142,13 @@ export default function RegisterPage() {
                 </p>
               </div>
 
-              <form className="grid gap-4" action="/dashboard">
+              {error && (
+                <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-800/40 dark:bg-red-900/20 dark:text-red-400">
+                  {error}
+                </div>
+              )}
+
+              <form className="grid gap-4" onSubmit={handleSubmit}>
                 {/* Full name */}
                 <div>
                   <label htmlFor="name" className="mw-label mb-1.5 block">
@@ -121,6 +166,9 @@ export default function RegisterPage() {
                       placeholder="Your name"
                       className="mw-input pl-9"
                       autoComplete="name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      required
                     />
                   </div>
                 </div>
@@ -142,6 +190,9 @@ export default function RegisterPage() {
                       placeholder="you@example.com"
                       className="mw-input pl-9"
                       autoComplete="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
                     />
                   </div>
                 </div>
@@ -163,13 +214,21 @@ export default function RegisterPage() {
                       placeholder="Create a strong password"
                       className="mw-input pl-9"
                       autoComplete="new-password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      minLength={8}
                     />
                   </div>
                   <p className="mt-1.5 text-xs text-mw-body">At least 8 characters recommended.</p>
                 </div>
 
-                <button type="submit" className="mw-btn-primary mt-1 h-12 w-full text-base">
-                  Create free account →
+                <button
+                  type="submit"
+                  className="mw-btn-primary mt-1 h-12 w-full text-base disabled:opacity-60"
+                  disabled={loading}
+                >
+                  {loading ? "Creating account…" : "Create free account →"}
                 </button>
               </form>
 
@@ -183,7 +242,9 @@ export default function RegisterPage() {
               {/* Google */}
               <button
                 type="button"
-                className="mw-btn-ghost h-11 w-full gap-3 border-mw-border/80 hover:border-mw-light/50"
+                onClick={handleGoogle}
+                disabled={loading}
+                className="mw-btn-ghost h-11 w-full gap-3 border-mw-border/80 hover:border-mw-light/50 disabled:opacity-60"
               >
                 <svg width="18" height="18" viewBox="0 0 24 24">
                   <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -206,4 +267,24 @@ export default function RegisterPage() {
       </div>
     </main>
   );
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function getAuthError(err: unknown): string {
+  if (err && typeof err === "object" && "code" in err) {
+    switch ((err as { code: string }).code) {
+      case "auth/email-already-in-use":
+        return "An account with this email already exists.";
+      case "auth/weak-password":
+        return "Password must be at least 6 characters.";
+      case "auth/invalid-email":
+        return "Please enter a valid email address.";
+      case "auth/popup-closed-by-user":
+        return "Sign-in popup was closed. Please try again.";
+      default:
+        return "Something went wrong. Please try again.";
+    }
+  }
+  return "Something went wrong. Please try again.";
 }

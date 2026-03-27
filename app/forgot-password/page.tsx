@@ -1,6 +1,39 @@
+"use client";
+
 import Link from "next/link";
+import { useState, type FormEvent } from "react";
+import { resetPassword } from "@/lib/firebase";
 
 export default function ForgotPasswordPage() {
+  const [email, setEmail] = useState("");
+  const [sent, setSent] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+    try {
+      await resetPassword(email);
+      setSent(true);
+    } catch (err: unknown) {
+      if (err && typeof err === "object" && "code" in err) {
+        const code = (err as { code: string }).code;
+        if (code === "auth/user-not-found" || code === "auth/invalid-email") {
+          // Don't reveal whether the email exists — just show success
+          setSent(true);
+        } else {
+          setError("Something went wrong. Please try again.");
+        }
+      } else {
+        setError("Something went wrong. Please try again.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <main className="flex min-h-[calc(100vh-4rem)]">
 
@@ -80,48 +113,84 @@ export default function ForgotPasswordPage() {
                 Back to sign in
               </Link>
 
-              <div className="mb-7">
-                <p className="mw-section-label mb-1">Password reset</p>
-                <h1 className="text-2xl font-black tracking-tight text-mw-primary">
-                  Forgot your password?
-                </h1>
-                <p className="mt-1.5 text-sm text-mw-body">
-                  No problem. Enter your email and we&apos;ll send a reset link.
-                </p>
-              </div>
-
-              <form className="grid gap-4" action="/login">
-                <div>
-                  <label htmlFor="email" className="mw-label mb-1.5 block">
-                    Email address
-                  </label>
-                  <div className="relative">
-                    <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-mw-body/60">
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
-                      </svg>
-                    </span>
-                    <input
-                      id="email"
-                      type="email"
-                      placeholder="you@example.com"
-                      className="mw-input pl-9"
-                      autoComplete="email"
-                    />
+              {sent ? (
+                /* ── Success state ── */
+                <div className="text-center">
+                  <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-mw-accent/15">
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-mw-accent">
+                      <rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+                    </svg>
                   </div>
+                  <h1 className="mb-2 text-2xl font-black tracking-tight text-mw-primary">
+                    Check your inbox
+                  </h1>
+                  <p className="text-sm text-mw-body">
+                    If an account exists for <span className="font-semibold text-mw-primary">{email}</span>, you&apos;ll receive a reset link shortly.
+                  </p>
+                  <Link href="/login" className="mw-btn-primary mt-6 inline-flex h-11 w-full items-center justify-center text-sm">
+                    Back to sign in
+                  </Link>
                 </div>
+              ) : (
+                /* ── Form state ── */
+                <>
+                  <div className="mb-7">
+                    <p className="mw-section-label mb-1">Password reset</p>
+                    <h1 className="text-2xl font-black tracking-tight text-mw-primary">
+                      Forgot your password?
+                    </h1>
+                    <p className="mt-1.5 text-sm text-mw-body">
+                      No problem. Enter your email and we&apos;ll send a reset link.
+                    </p>
+                  </div>
 
-                <button type="submit" className="mw-btn-primary mt-1 h-12 w-full text-base">
-                  Send reset link →
-                </button>
-              </form>
+                  {error && (
+                    <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-800/40 dark:bg-red-900/20 dark:text-red-400">
+                      {error}
+                    </div>
+                  )}
 
-              <p className="mt-6 text-center text-sm text-mw-body">
-                Remembered it?{" "}
-                <Link href="/login" className="font-semibold text-mw-primary hover:underline">
-                  Sign in
-                </Link>
-              </p>
+                  <form className="grid gap-4" onSubmit={handleSubmit}>
+                    <div>
+                      <label htmlFor="email" className="mw-label mb-1.5 block">
+                        Email address
+                      </label>
+                      <div className="relative">
+                        <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-mw-body/60">
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+                          </svg>
+                        </span>
+                        <input
+                          id="email"
+                          type="email"
+                          placeholder="you@example.com"
+                          className="mw-input pl-9"
+                          autoComplete="email"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="mw-btn-primary mt-1 h-12 w-full text-base disabled:opacity-60"
+                      disabled={loading}
+                    >
+                      {loading ? "Sending…" : "Send reset link →"}
+                    </button>
+                  </form>
+
+                  <p className="mt-6 text-center text-sm text-mw-body">
+                    Remembered it?{" "}
+                    <Link href="/login" className="font-semibold text-mw-primary hover:underline">
+                      Sign in
+                    </Link>
+                  </p>
+                </>
+              )}
             </div>
           </div>
 

@@ -3,6 +3,7 @@ import { DM_Sans } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
 import Navbar from "./navbar";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
@@ -90,9 +91,10 @@ export default function RootLayout({
         />
       </head>
       <body className="flex min-h-screen flex-col bg-mw-bg font-[family-name:var(--font-dm-sans)] antialiased">
-        <Navbar />
+        <AuthProvider>
+          <Navbar />
 
-        <div className="flex-1">{children}</div>
+          <div className="flex-1">{children}</div>
 
         {/* FOOTER */}
         <footer className="mt-auto border-t border-mw-border">
@@ -177,6 +179,7 @@ export default function RootLayout({
           </div>
 
         </footer>
+        </AuthProvider>
       </body>
     </html>
   );

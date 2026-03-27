@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
-import { mockTransactions, mockUser } from "@/lib/mock-data";
+import { mockTransactions } from "@/lib/mock-data";
+import { useAuth } from "@/contexts/AuthContext";
 
 function ArrowUpIcon() {
   return (
@@ -63,6 +66,9 @@ function QuickLink({ href, label, description, icon }: { href: string; label: st
 }
 
 export default function DashboardPage() {
+  const { user } = useAuth();
+  const firstName = user?.displayName?.split(" ")[0] ?? user?.email?.split("@")[0] ?? "there";
+
   const totalIncome = mockTransactions
     .filter((t) => t.type === "Income")
     .reduce((sum, t) => sum + t.amount, 0);
@@ -85,7 +91,7 @@ export default function DashboardPage() {
         <div className="mw-page-header">
           <div>
             <p className="mw-section-label mb-0.5">Overview</p>
-            <h1 className="mw-title">Good to see you, {mockUser.name.split(" ")[0]}.</h1>
+            <h1 className="mw-title">Good to see you, {firstName}.</h1>
             <p className="mt-1 text-sm text-mw-body">Here&apos;s your financial snapshot.</p>
           </div>
           <div className="flex gap-2">
