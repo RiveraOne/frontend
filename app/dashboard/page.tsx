@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { mockTransactions } from "@/lib/mock-data";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { subscribeToTransactions, type Transaction } from "@/lib/firebase";
 
 function ArrowUpIcon() {
   return (
@@ -69,18 +70,26 @@ export default function DashboardPage() {
   const { user } = useAuth();
   const firstName = user?.displayName?.split(" ")[0] ?? user?.email?.split("@")[0] ?? "there";
 
-  const totalIncome = mockTransactions
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+
+  useEffect(() => {
+    if (!user) return;
+    const unsub = subscribeToTransactions(user.uid, setTransactions);
+    return unsub;
+  }, [user]);
+
+  const totalIncome = transactions
     .filter((t) => t.type === "Income")
     .reduce((sum, t) => sum + t.amount, 0);
 
-  const totalExpenses = mockTransactions
+  const totalExpenses = transactions
     .filter((t) => t.type === "Expense")
     .reduce((sum, t) => sum + t.amount, 0);
 
   const remaining = totalIncome - totalExpenses;
   const spendRatio = totalIncome > 0 ? Math.round((totalExpenses / totalIncome) * 100) : 0;
 
-  const recentTransactions = [...mockTransactions]
+  const recentTransactions = [...transactions]
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 5);
 

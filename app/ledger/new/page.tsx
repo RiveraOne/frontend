@@ -2,47 +2,62 @@
 
 import Link from "next/link";
 import { ChangeEvent, FormEvent, useMemo, useState } from "react";
-import type { LedgerEntry } from "@/lib/mock-data";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
+import { addTransaction, type TransactionType } from "@/lib/firebase";
 
 export default function NewLedgerEntryPage() {
-  const [type, setType] = useState<LedgerEntry["type"]>("Expense");
+  const router = useRouter();
+  const { user } = useAuth();
+
+  const [type, setType] = useState<TransactionType>("Expense");
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState("");
   const [date, setDate] = useState("");
+  const [notes, setNotes] = useState("");
   const [previewUrl, setPreviewUrl] = useState<string>("");
-  const [savedItems, setSavedItems] = useState<LedgerEntry[]>([]);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
-  const canSave = useMemo(() => {
-    return Boolean(amount && category.trim() && date);
-  }, [amount, category, date]);
+  const canSave = useMemo(
+    () => Boolean(amount && category.trim() && date),
+    [amount, category, date]
+  );
 
-  const onFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) {
-      setPreviewUrl("");
-      return;
+  function onFileChange(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    setPreviewUrl(file ? URL.createObjectURL(file) : "");
+  }
+
+  async function onSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!canSave || !user) return;
+    setError("");
+    setSaving(true);
+    try {
+      const trimmedNotes = notes.trim();
+      await addTransaction(user.uid, {
+        type,
+        amount: Number(amount),
+        category: category.trim(),
+        date,
+        ...(trimmedNotes ? { notes: trimmedNotes } : {}),
+        // receiptUrl: TODO — wire up Firebase Storage upload
+      });
+      router.push("/ledger");
+    } catch (err) {
+      console.error("addTransaction error:", err);
+      const code = (err as { code?: string })?.code;
+      if (code === "permission-denied") {
+        setError("Permission denied — check your Firestore security rules in the Firebase Console.");
+      } else if (code === "unavailable" || code === "failed-precondition") {
+        setError("Firestore database not reachable. Make sure it has been created in the Firebase Console.");
+      } else {
+        setError(`Failed to save: ${err instanceof Error ? err.message : String(err)}`);
+      }
+      setSaving(false);
     }
-    setPreviewUrl(URL.createObjectURL(file));
-  };
-
-  const onSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!canSave) return;
-
-    const newItem: LedgerEntry = {
-      id: crypto.randomUUID(),
-      type,
-      amount: Number(amount),
-      category: category.trim(),
-      date,
-    };
-
-    setSavedItems((prev) => [newItem, ...prev]);
-    setAmount("");
-    setCategory("");
-    setDate("");
-    setPreviewUrl("");
-  };
+  }
 
   return (
     <main>
@@ -58,15 +73,19 @@ export default function NewLedgerEntryPage() {
 
           {/* Form card */}
           <div className="mw-card overflow-hidden">
-            {/* Card header */}
             <div className="border-b border-mw-border px-6 py-5">
               <p className="mw-section-label mb-0.5">New Entry</p>
               <h1 className="mw-title text-2xl">Add Transaction</h1>
               <p className="mt-1 text-sm text-mw-body">Fill in the details below to log a new transaction.</p>
             </div>
 
-            {/* Form body */}
             <form onSubmit={onSubmit} className="p-6">
+              {error && (
+                <div className="mb-5 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-800/40 dark:bg-rose-900/20 dark:text-rose-400">
+                  {error}
+                </div>
+              )}
+
               {/* Type toggle */}
               <div className="mb-5">
                 <p className="mw-label mb-2">Transaction type</p>
@@ -106,6 +125,7 @@ export default function NewLedgerEntryPage() {
                       onChange={(e) => setAmount(e.target.value)}
                       placeholder="0.00"
                       className="mw-input pl-7"
+                      required
                     />
                   </div>
                 </div>
@@ -119,6 +139,7 @@ export default function NewLedgerEntryPage() {
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
                     className="mw-input"
+                    required
                   />
                 </div>
               </div>
@@ -133,10 +154,11 @@ export default function NewLedgerEntryPage() {
                   onChange={(e) => setCategory(e.target.value)}
                   placeholder="e.g. Groceries, Rent, Salary"
                   className="mw-input"
+                  required
                 />
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   {(type === "Expense"
-                    ? ["Groceries", "Rent", "Transport", "Utilities", "Dining"]
+                    ? ["Groceries", "Rent", "Transport", "Utilities", "Dining", "Shopping"]
                     : ["Salary", "Freelance", "Investment", "Gift"]
                   ).map((tag) => (
                     <button
@@ -149,6 +171,21 @@ export default function NewLedgerEntryPage() {
                     </button>
                   ))}
                 </div>
+              </div>
+
+              {/* Notes */}
+              <div className="mt-4">
+                <label htmlFor="notes" className="mw-label mb-1.5 block">
+                  Notes <span className="font-normal text-mw-body">(optional)</span>
+                </label>
+                <textarea
+                  id="notes"
+                  rows={2}
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Any extra details…"
+                  className="mw-input resize-none"
+                />
               </div>
 
               {/* Receipt */}
@@ -179,43 +216,13 @@ export default function NewLedgerEntryPage() {
 
               <button
                 type="submit"
-                disabled={!canSave}
+                disabled={!canSave || saving}
                 className="mw-btn-primary mt-6 h-11 w-full text-base disabled:cursor-not-allowed disabled:opacity-40"
               >
-                {canSave ? "Save Transaction" : "Fill in all fields to save"}
+                {saving ? "Saving…" : canSave ? "Save Transaction" : "Fill in all fields to save"}
               </button>
             </form>
           </div>
-
-          {/* Saved items */}
-          {savedItems.length > 0 && (
-            <div className="mt-5 mw-card overflow-hidden">
-              <div className="border-b border-mw-border px-5 py-4">
-                <p className="text-sm font-bold text-mw-primary">
-                  Session entries ({savedItems.length})
-                </p>
-                <p className="text-xs text-mw-body mt-0.5">Saved locally — not persisted yet.</p>
-              </div>
-              <div className="divide-y divide-mw-border">
-                {savedItems.map((item) => (
-                  <div key={item.id} className="flex items-center justify-between px-5 py-3.5">
-                    <div className="flex items-center gap-3">
-                      <span className={item.type === "Income" ? "mw-badge-income" : "mw-badge-expense"}>
-                        {item.type === "Income" ? "↑" : "↓"} {item.type}
-                      </span>
-                      <div>
-                        <p className="text-sm font-semibold text-mw-dark">{item.category}</p>
-                        <p className="text-xs text-mw-body">{item.date}</p>
-                      </div>
-                    </div>
-                    <span className={`text-sm font-bold ${item.type === "Income" ? "text-teal-600 dark:text-teal-400" : "text-rose-600 dark:text-rose-400"}`}>
-                      {item.type === "Income" ? "+" : "-"}${item.amount.toLocaleString()}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       </section>
     </main>
