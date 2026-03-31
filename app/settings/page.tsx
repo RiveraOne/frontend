@@ -1,11 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { updateProfile } from "firebase/auth";
 import { useAuth } from "@/contexts/AuthContext";
 import { auth, logout, resetPassword } from "@/lib/firebase";
+
+type Theme = "light" | "dark";
+
+function applyTheme(theme: Theme) {
+  document.documentElement.classList.toggle("dark", theme === "dark");
+  document.documentElement.style.colorScheme = theme;
+  localStorage.setItem("theme", theme);
+}
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -71,6 +79,24 @@ export default function SettingsPage() {
   const initials = name
     ? name.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase()
     : email.slice(0, 2).toUpperCase();
+
+  // ── Theme ────────────────────────────────────────────────────────────────────
+  const [theme, setTheme] = useState<Theme>("light");
+  const [themeMounted, setThemeMounted] = useState(false);
+
+  useEffect(() => {
+    const stored = localStorage.getItem("theme");
+    const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const resolved: Theme = stored === "dark" || (!stored && systemPrefersDark) ? "dark" : "light";
+    setTheme(resolved);
+    setThemeMounted(true);
+  }, []);
+
+  function toggleTheme() {
+    const next: Theme = theme === "dark" ? "light" : "dark";
+    applyTheme(next);
+    setTheme(next);
+  }
 
   // Subscription is hardcoded as Free until Firestore user docs are set up
   const subscription = "Free Plan";
@@ -218,6 +244,37 @@ export default function SettingsPage() {
                   </Link>
                 )}
               </div>
+            </div>
+          </div>
+
+          {/* Appearance */}
+          <div className="mt-5 mw-card overflow-hidden">
+            <div className="border-b border-mw-border px-6 py-4">
+              <p className="text-sm font-bold text-mw-primary">Appearance</p>
+            </div>
+            <div className="flex items-center justify-between px-6 py-4">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-widest text-mw-light">Theme</p>
+                <p className="mt-0.5 text-sm font-semibold text-mw-dark">
+                  {themeMounted ? (theme === "dark" ? "Dark" : "Light") : "—"}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={toggleTheme}
+                aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-mw-accent focus:ring-offset-2 ${
+                  themeMounted && theme === "dark"
+                    ? "bg-mw-accent"
+                    : "bg-mw-border"
+                }`}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ${
+                    themeMounted && theme === "dark" ? "translate-x-5" : "translate-x-0"
+                  }`}
+                />
+              </button>
             </div>
           </div>
 
