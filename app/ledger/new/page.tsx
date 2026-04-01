@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ChangeEvent, FormEvent, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import ProtectedRoute from "@/components/auth/protected-route";
 import { useAuth } from "@/contexts/AuthContext";
 import { addTransaction, type TransactionType } from "@/lib/firebase";
 
@@ -60,6 +61,7 @@ export default function NewLedgerEntryPage() {
   }
 
   return (
+    <ProtectedRoute>
     <main>
       <section className="mw-shell">
         <div className="mx-auto w-full max-w-2xl">
@@ -226,5 +228,6 @@ export default function NewLedgerEntryPage() {
         </div>
       </section>
     </main>
+    </ProtectedRoute>
   );
 }

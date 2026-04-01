@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { updateProfile } from "firebase/auth";
+import ProtectedRoute from "@/components/auth/protected-route";
 import { useAuth } from "@/contexts/AuthContext";
 import { auth, logout, resetPassword } from "@/lib/firebase";
 
@@ -117,6 +118,7 @@ export default function SettingsPage() {
   }
 
   return (
+    <ProtectedRoute>
     <main>
       <section className="mw-shell">
         <div className="mx-auto w-full max-w-2xl">
@@ -315,5 +317,6 @@ export default function SettingsPage() {
         </div>
       </section>
     </main>
+    </ProtectedRoute>
   );
 }

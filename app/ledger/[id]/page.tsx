@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useParams, useRouter, notFound } from "next/navigation";
 import { useEffect, useState } from "react";
+import ProtectedRoute from "@/components/auth/protected-route";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   getTransaction,
@@ -112,6 +113,7 @@ export default function TransactionDetailPage() {
   ).length;
 
   return (
+    <ProtectedRoute>
     <main>
       <section className="mw-shell">
         <div className="mx-auto w-full max-w-2xl">
@@ -281,5 +283,6 @@ export default function TransactionDetailPage() {
         </div>
       </section>
     </main>
+    </ProtectedRoute>
   );
 }

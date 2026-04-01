@@ -1,16 +1,26 @@
 "use client";
 
 import Link from "next/link";
-import { useState, type FormEvent } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, type FormEvent } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
 import { loginWithEmail, loginWithGoogle } from "@/lib/firebase";
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const { user, loading: authLoading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const redirectTo = searchParams.get("redirect") || "/dashboard";
+
+  useEffect(() => {
+    if (!authLoading && user) {
+      router.replace(redirectTo);
+    }
+  }, [authLoading, redirectTo, router, user]);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -18,7 +28,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await loginWithEmail(email, password);
-      router.push("/dashboard");
+      router.push(redirectTo);
     } catch (err: unknown) {
       setError(getAuthError(err));
     } finally {
@@ -31,7 +41,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await loginWithGoogle();
-      router.push("/dashboard");
+      router.push(redirectTo);
     } catch (err: unknown) {
       setError(getAuthError(err));
     } finally {

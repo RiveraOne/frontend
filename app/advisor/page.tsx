@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useRef, useState } from "react";
+import ProtectedRoute from "@/components/auth/protected-route";
 
 type ChatMessage = {
   role: "user" | "assistant";
@@ -86,6 +87,7 @@ export default function AdvisorPage() {
   };
 
   return (
+    <ProtectedRoute>
     <main>
       <section className="mw-shell">
         <div className="mx-auto flex w-full max-w-2xl flex-col" style={{ height: "calc(100vh - 10rem)" }}>
@@ -219,5 +221,6 @@ export default function AdvisorPage() {
         </div>
       </section>
     </main>
+    </ProtectedRoute>
   );
 }

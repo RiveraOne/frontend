@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import ProtectedRoute from "@/components/auth/protected-route";
 import { useAuth } from "@/contexts/AuthContext";
 import { subscribeToTransactions, type Transaction } from "@/lib/firebase";
 
@@ -94,6 +95,7 @@ export default function DashboardPage() {
     .slice(0, 5);
 
   return (
+    <ProtectedRoute>
     <main>
       <section className="mw-shell">
         {/* Page header */}
@@ -248,5 +250,6 @@ export default function DashboardPage() {
         </div>
       </section>
     </main>
+    </ProtectedRoute>
   );
 }

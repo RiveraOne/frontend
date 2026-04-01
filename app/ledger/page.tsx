@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import ProtectedRoute from "@/components/auth/protected-route";
 import { useAuth } from "@/contexts/AuthContext";
 import { subscribeToTransactions, type Transaction } from "@/lib/firebase";
 
@@ -45,6 +46,7 @@ export default function LedgerPage() {
   const isLoading = authLoading || txLoading;
 
   return (
+    <ProtectedRoute>
     <main>
       <section className="mw-shell">
         {/* Page header */}
@@ -172,5 +174,6 @@ export default function LedgerPage() {
         </div>
       </section>
     </main>
+    </ProtectedRoute>
   );
 }
