@@ -5,6 +5,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { loginWithEmail, loginWithGoogle } from "@/lib/firebase";
+import { safeAuthRedirect } from "@/lib/routes/redirects";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -14,7 +15,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const redirectTo = searchParams.get("redirect") || "/dashboard";
+  const redirectTo = safeAuthRedirect(searchParams.get("redirect"));
 
   useEffect(() => {
     if (!authLoading && user) {

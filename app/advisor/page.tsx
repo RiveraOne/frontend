@@ -1,7 +1,7 @@
 "use client";
 
 import React, { FormEvent, useEffect, useRef, useState } from "react";
-import ProtectedRoute from "@/components/auth/protected-route";
+import PlanProtectedRoute from "@/components/auth/plan-protected-route";
 import { useAuth } from "@/contexts/AuthContext";
 import { subscribeToTransactions, type Transaction } from "@/lib/firebase";
 import { PLAN_CONFIG } from "@/lib/stripe/config";
@@ -187,7 +187,7 @@ export default function AdvisorPage() {
   }
 
   return (
-    <ProtectedRoute>
+    <PlanProtectedRoute>
       <main>
         <section className="mw-shell">
           <div className="mx-auto flex w-full max-w-2xl flex-col" style={{ height: "calc(100vh - 10rem)" }}>
@@ -330,6 +330,6 @@ export default function AdvisorPage() {
           </div>
         </section>
       </main>
-    </ProtectedRoute>
+    </PlanProtectedRoute>
   );
 }

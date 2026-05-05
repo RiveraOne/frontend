@@ -107,6 +107,13 @@ export async function POST(request: Request) {
   const queriesUsed = userDoc.advisorQueriesUsed;
   const monthlyLimit = planConfig.monthlyLimit;
 
+  if (plan === "free") {
+    return NextResponse.json(
+      { error: "Choose a paid plan to unlock the AI Advisor.", plan },
+      { status: 403 }
+    );
+  }
+
   if (queriesUsed >= monthlyLimit) {
     return NextResponse.json(
       {

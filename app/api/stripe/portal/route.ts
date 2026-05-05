@@ -6,6 +6,10 @@ import { isMissingStripeResource, messageForStripeError } from "@/lib/stripe/err
 
 export const runtime = "nodejs";
 
+function isDeletedStripeCustomer(customer: Awaited<ReturnType<typeof stripe.customers.retrieve>>): boolean {
+  return "deleted" in customer && customer.deleted === true;
+}
+
 export async function POST(request: Request) {
   const authHeader = request.headers.get("Authorization");
   const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
@@ -35,7 +39,14 @@ export async function POST(request: Request) {
   const origin = request.headers.get("origin") ?? "http://localhost:3000";
 
   try {
-    await stripe.customers.retrieve(userDoc.stripeCustomerId);
+    const customer = await stripe.customers.retrieve(userDoc.stripeCustomerId);
+    if (isDeletedStripeCustomer(customer)) {
+      await upsertUserDoc(uid, { stripeCustomerId: null });
+      return NextResponse.json(
+        { error: "No billing account found. Please start checkout again." },
+        { status: 404 }
+      );
+    }
 
     const session = await stripe.billingPortal.sessions.create({
       customer: userDoc.stripeCustomerId,

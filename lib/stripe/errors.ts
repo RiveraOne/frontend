@@ -3,6 +3,7 @@ import { stripe } from "@/lib/stripe/client";
 type StripeLikeError = {
   code?: string;
   message?: string;
+  param?: string;
   statusCode?: number;
   type?: string;
 };
@@ -23,6 +24,36 @@ export function messageForStripeError(
 ): string {
   const stripeError = asStripeLikeError(error);
   const message = stripeError.message ?? "";
+
+  if (
+    stripeError.code === "resource_missing" &&
+    stripeError.param?.includes("price") &&
+    message.includes("similar object exists in live mode")
+  ) {
+    return "Stripe is using a test secret key, but this plan is configured with a live-mode Price ID. Copy the test-mode Price ID from Stripe Dashboard and update STRIPE_PRICE_ESSENTIAL/STRIPE_PRICE_PRO.";
+  }
+
+  if (
+    stripeError.code === "resource_missing" &&
+    stripeError.param?.includes("price") &&
+    message.includes("similar object exists in test mode")
+  ) {
+    return "Stripe is using a live secret key, but this plan is configured with a test-mode Price ID. Use matching live-mode Stripe keys and Price IDs.";
+  }
+
+  if (
+    stripeError.code === "resource_missing" &&
+    stripeError.param?.includes("price")
+  ) {
+    return "Stripe could not find this plan's Price ID. Check STRIPE_PRICE_ESSENTIAL and STRIPE_PRICE_PRO for the same Stripe mode as STRIPE_SECRET_KEY.";
+  }
+
+  if (
+    stripeError.code === "resource_missing" &&
+    stripeError.param?.includes("customer")
+  ) {
+    return "Stripe could not find the saved customer. Please try checkout again.";
+  }
 
   if (stripeError.code === "resource_missing") {
     return "Stripe could not find the saved billing record. Please try again.";

@@ -16,6 +16,10 @@ function isStripePriceId(priceId: string): boolean {
   return priceId.startsWith("price_");
 }
 
+function isDeletedStripeCustomer(customer: Awaited<ReturnType<typeof stripe.customers.retrieve>>): boolean {
+  return "deleted" in customer && customer.deleted === true;
+}
+
 export async function POST(request: Request) {
   const authHeader = request.headers.get("Authorization");
   const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
@@ -75,7 +79,10 @@ export async function POST(request: Request) {
 
     if (stripeCustomerId) {
       try {
-        await stripe.customers.retrieve(stripeCustomerId);
+        const customer = await stripe.customers.retrieve(stripeCustomerId);
+        if (isDeletedStripeCustomer(customer)) {
+          stripeCustomerId = null;
+        }
       } catch (error) {
         if (!isMissingStripeResource(error)) throw error;
         stripeCustomerId = null;

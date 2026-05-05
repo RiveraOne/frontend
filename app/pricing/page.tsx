@@ -52,7 +52,7 @@ function PlanCTA({
 
   async function handleClick() {
     if (!user) {
-      router.push(`/register?redirect=/pricing`);
+      router.push("/register?redirect=/pricing");
       return;
     }
 

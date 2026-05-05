@@ -2,16 +2,19 @@
 
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { registerWithEmail, loginWithGoogle } from "@/lib/firebase";
+import { safeAuthRedirect } from "@/lib/routes/redirects";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const redirectTo = safeAuthRedirect(searchParams.get("redirect"));
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -19,7 +22,7 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       await registerWithEmail(name, email, password);
-      router.push("/dashboard");
+      router.push(redirectTo);
     } catch (err: unknown) {
       setError(getAuthError(err));
     } finally {
@@ -32,7 +35,7 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       await loginWithGoogle();
-      router.push("/dashboard");
+      router.push(redirectTo);
     } catch (err: unknown) {
       setError(getAuthError(err));
     } finally {
