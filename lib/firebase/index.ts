@@ -16,3 +16,4 @@ export {
   resetPassword,
   logout,
 } from "./auth";
+export { subscribeToUserDoc } from "./userDocClient";

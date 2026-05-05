@@ -12,6 +12,18 @@ import { auth } from "./config";
 
 const googleProvider = new GoogleAuthProvider();
 
+async function provision(credential: UserCredential): Promise<void> {
+  try {
+    const token = await credential.user.getIdToken();
+    await fetch("/api/auth/provision", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  } catch {
+    // provision failure is non-fatal — AuthContext will retry on next load
+  }
+}
+
 // ─── Email / password ─────────────────────────────────────────────────────────
 
 export async function registerWithEmail(
@@ -21,6 +33,7 @@ export async function registerWithEmail(
 ): Promise<UserCredential> {
   const credential = await createUserWithEmailAndPassword(auth, email, password);
   await updateProfile(credential.user, { displayName: name });
+  await provision(credential);
   return credential;
 }
 
@@ -34,7 +47,9 @@ export async function loginWithEmail(
 // ─── Google OAuth ─────────────────────────────────────────────────────────────
 
 export async function loginWithGoogle(): Promise<UserCredential> {
-  return signInWithPopup(auth, googleProvider);
+  const credential = await signInWithPopup(auth, googleProvider);
+  await provision(credential);
+  return credential;
 }
 
 // ─── Password reset ───────────────────────────────────────────────────────────

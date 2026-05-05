@@ -1,4 +1,12 @@
 import { NextResponse } from "next/server";
+import { adminAuth } from "@/lib/firebase/admin";
+import {
+  getUserDoc,
+  resetAdvisorUsageIfNeeded,
+  incrementAdvisorUsage,
+  provisionUserDoc,
+} from "@/lib/firebase/userDoc";
+import { PLAN_CONFIG } from "@/lib/stripe/config";
 import { generateAdvisorReply } from "@/lib/ai/advisor";
 import type {
   AdvisorMessage,
@@ -6,9 +14,10 @@ import type {
   AdvisorTransaction,
 } from "@/lib/ai/types";
 
+export const runtime = "nodejs";
+
 function isValidMessage(value: unknown): value is AdvisorMessage {
   if (!value || typeof value !== "object") return false;
-
   const message = value as Record<string, unknown>;
   return (
     (message.role === "user" || message.role === "assistant") &&
@@ -19,7 +28,6 @@ function isValidMessage(value: unknown): value is AdvisorMessage {
 
 function isValidTransaction(value: unknown): value is AdvisorTransaction {
   if (!value || typeof value !== "object") return false;
-
   const transaction = value as Record<string, unknown>;
   return (
     typeof transaction.date === "string" &&
@@ -52,54 +60,81 @@ function parseAdvisorRequest(body: unknown): AdvisorRequest {
     if (!Array.isArray(transactions)) {
       throw new Error("`transactions` must be an array when provided.");
     }
-
     if (!transactions.every(isValidTransaction)) {
       throw new Error("Each transaction must include date, type, amount, and category.");
     }
   }
 
-  return {
-    messages,
-    transactions,
-    userProfile:
-      input.userProfile && typeof input.userProfile === "object"
-        ? {
-            displayName:
-              typeof (input.userProfile as Record<string, unknown>).displayName === "string"
-                ? ((input.userProfile as Record<string, unknown>).displayName as string)
-                : null,
-            email:
-              typeof (input.userProfile as Record<string, unknown>).email === "string"
-                ? ((input.userProfile as Record<string, unknown>).email as string)
-                : null,
-            plan:
-              typeof (input.userProfile as Record<string, unknown>).plan === "string"
-                ? ((input.userProfile as Record<string, unknown>).plan as string)
-                : null,
-          }
-        : undefined,
-  };
+  return { messages, transactions };
 }
 
 export async function POST(request: Request) {
+  // ── Auth ──────────────────────────────────────────────────────────────────
+  const authHeader = request.headers.get("Authorization");
+  const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
+
+  if (!token) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  let uid: string;
+  let email: string | null;
+  let name: string | null;
+
+  try {
+    const decoded = await adminAuth.verifyIdToken(token);
+    uid = decoded.uid;
+    email = decoded.email ?? null;
+    name = decoded.name ?? null;
+  } catch {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // ── User doc + plan check ─────────────────────────────────────────────────
+  let userDoc = await getUserDoc(uid);
+
+  if (!userDoc) {
+    await provisionUserDoc(uid, email, name);
+    userDoc = await getUserDoc(uid);
+  }
+
+  userDoc = await resetAdvisorUsageIfNeeded(uid, userDoc!);
+
+  const plan = userDoc!.plan;
+  const planConfig = PLAN_CONFIG[plan];
+  const queriesUsed = userDoc!.advisorQueriesUsed;
+  const monthlyLimit = planConfig.monthlyLimit;
+
+  if (queriesUsed >= monthlyLimit) {
+    return NextResponse.json(
+      {
+        error: "Monthly query limit reached. Upgrade your plan for more queries.",
+        plan,
+        queriesUsed,
+        monthlyLimit: monthlyLimit === Infinity ? null : monthlyLimit,
+      },
+      { status: 429 }
+    );
+  }
+
+  // ── Generate reply ────────────────────────────────────────────────────────
   try {
     const body = await request.json();
     const input = parseAdvisorRequest(body);
 
-    // TODO: Replace client-supplied transactions with server-side retrieval after
-    // adding Firebase Admin auth verification in the dedicated AI backend.
-    const response = await generateAdvisorReply(input);
+    const response = await generateAdvisorReply({
+      ...input,
+      userProfile: { displayName: name, email, plan },
+    });
 
-    return NextResponse.json(response);
+    await incrementAdvisorUsage(uid);
+
+    const remaining = monthlyLimit === Infinity ? null : monthlyLimit - queriesUsed - 1;
+
+    return NextResponse.json({ ...response, meta: { ...response.meta, queriesRemaining: remaining } });
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Failed to generate advisor reply.";
-
-    return NextResponse.json(
-      {
-        error: message,
-      },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: message }, { status: 400 });
   }
 }

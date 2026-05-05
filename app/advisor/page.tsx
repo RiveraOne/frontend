@@ -4,13 +4,13 @@ import React, { FormEvent, useEffect, useRef, useState } from "react";
 import ProtectedRoute from "@/components/auth/protected-route";
 import { useAuth } from "@/contexts/AuthContext";
 import { subscribeToTransactions, type Transaction } from "@/lib/firebase";
+import { PLAN_CONFIG } from "@/lib/stripe/config";
 
 type ChatMessage = {
   role: "user" | "assistant";
   content: string;
 };
 
-// Renders a single line with inline **bold** and *italic* support
 function InlineMd({ text }: { text: string }) {
   const parts: React.ReactNode[] = [];
   const re = /(\*\*(.+?)\*\*|\*(.+?)\*)/g;
@@ -30,7 +30,6 @@ function InlineMd({ text }: { text: string }) {
   return <>{parts}</>;
 }
 
-// Renders full markdown message: numbered lists, bullet lists, and paragraphs
 function MessageContent({ content }: { content: string }) {
   const lines = content.split("\n");
   const nodes: React.ReactNode[] = [];
@@ -53,10 +52,7 @@ function MessageContent({ content }: { content: string }) {
 
   for (const raw of lines) {
     const line = raw.trim();
-    if (!line) {
-      flushList();
-      continue;
-    }
+    if (!line) { flushList(); continue; }
     const numberedMatch = line.match(/^\d+\.\s+(.*)/);
     const bulletMatch = line.match(/^[-•]\s+(.*)/);
     if (numberedMatch) {
@@ -73,13 +69,8 @@ function MessageContent({ content }: { content: string }) {
     }
   }
   flushList();
-
   return <div className="space-y-2">{nodes}</div>;
 }
-
-type AdvisorApiResponse = {
-  reply: ChatMessage;
-};
 
 const SUGGESTIONS = [
   "Can I afford a $300 purchase?",
@@ -88,10 +79,8 @@ const SUGGESTIONS = [
   "Where should I cut expenses?",
 ];
 
-const MAX_FREE = 5;
-
 export default function AdvisorPage() {
-  const { user } = useAuth();
+  const { user, userDoc } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: "assistant",
@@ -101,34 +90,31 @@ export default function AdvisorPage() {
   ]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [query, setQuery] = useState("");
-  const [used, setUsed] = useState(0);
   const [isTyping, setIsTyping] = useState(false);
   const [error, setError] = useState("");
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const isInitialMount = useRef(true);
 
-  const remaining = MAX_FREE - used;
-  const isAtLimit = used >= MAX_FREE;
-  const usagePercent = Math.round((used / MAX_FREE) * 100);
+  const plan = userDoc?.plan ?? "free";
+  const planConfig = PLAN_CONFIG[plan];
+  const queriesUsed = userDoc?.advisorQueriesUsed ?? 0;
+  const monthlyLimit = planConfig.monthlyLimit;
+  const isUnlimited = monthlyLimit === Infinity;
+  const isAtLimit = !isUnlimited && queriesUsed >= monthlyLimit;
+  const remaining = isUnlimited ? null : Math.max(0, monthlyLimit - queriesUsed);
+  const usagePercent = isUnlimited ? 0 : Math.min(100, Math.round((queriesUsed / monthlyLimit) * 100));
 
   useEffect(() => {
     if (!user) return;
-
     const unsubscribe = subscribeToTransactions(user.uid, setTransactions);
     return unsubscribe;
   }, [user]);
 
   useEffect(() => {
-    if (isInitialMount.current) {
-      isInitialMount.current = false;
-      return;
-    }
-
+    if (isInitialMount.current) { isInitialMount.current = false; return; }
     const container = messagesContainerRef.current;
-    if (container) {
-      container.scrollTop = container.scrollHeight;
-    }
+    if (container) container.scrollTop = container.scrollHeight;
   }, [messages, isTyping]);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
@@ -144,41 +130,44 @@ export default function AdvisorPage() {
     setIsTyping(true);
 
     try {
+      const token = await user.getIdToken();
       const response = await fetch("/api/ai/advisor", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          messages: nextMessages,
-          transactions,
-          userProfile: {
-            displayName: user.displayName,
-            email: user.email,
-            plan: "Free",
-          },
-        }),
+        body: JSON.stringify({ messages: nextMessages, transactions }),
       });
 
-      const data = (await response.json()) as AdvisorApiResponse & { error?: string };
+      const data = await response.json() as {
+        reply?: ChatMessage;
+        error?: string;
+        plan?: string;
+        queriesUsed?: number;
+        monthlyLimit?: number | null;
+      };
 
-      if (!response.ok || !data.reply?.content) {
-        throw new Error(data.error || "Failed to generate a response.");
+      if (response.status === 429) {
+        setError(data.error ?? "Monthly query limit reached. Upgrade your plan for more queries.");
+        setMessages((prev) => [
+          ...prev,
+          { role: "assistant", content: "You've reached your monthly query limit. Upgrade your plan to continue." },
+        ]);
+        return;
       }
 
-      setMessages((prev) => [...prev, data.reply]);
-      setUsed((prev) => Math.min(prev + 1, MAX_FREE));
+      if (!response.ok || !data.reply?.content) {
+        throw new Error(data.error ?? "Failed to generate a response.");
+      }
+
+      setMessages((prev) => [...prev, data.reply!]);
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Failed to reach the local AI service.";
+      const message = err instanceof Error ? err.message : "Failed to reach the AI service.";
       setError(message);
       setMessages((prev) => [
         ...prev,
-        {
-          role: "assistant",
-          content:
-            "I couldn't generate a response right now. Check that the local AI service is running and try again.",
-        },
+        { role: "assistant", content: "I couldn't generate a response right now. Please try again." },
       ]);
     } finally {
       setIsTyping(false);
@@ -203,18 +192,25 @@ export default function AdvisorPage() {
               </div>
 
               <div className="mw-card flex items-center gap-3 px-4 py-2.5">
-                <div>
-                  <p className="text-xs font-bold text-mw-primary">
-                    {remaining} free {remaining === 1 ? "query" : "queries"} left
-                  </p>
-                  <div className="mt-1.5 h-1.5 w-24 overflow-hidden rounded-full bg-mw-border">
-                    <div
-                      className={`h-full rounded-full transition-all ${usagePercent >= 80 ? "bg-rose-400" : "bg-gradient-to-r from-mw-accent to-mw-primary"}`}
-                      style={{ width: `${usagePercent}%` }}
-                    />
+                {isUnlimited ? (
+                  <div>
+                    <p className="text-xs font-bold text-mw-primary">Unlimited queries</p>
+                    <p className="mt-0.5 text-xs text-mw-body capitalize">{planConfig.label} plan</p>
                   </div>
-                </div>
-                <span className="text-xs text-mw-body">{used}/{MAX_FREE}</span>
+                ) : (
+                  <div>
+                    <p className={`text-xs font-bold ${isAtLimit ? "text-rose-500" : "text-mw-primary"}`}>
+                      {remaining} {remaining === 1 ? "query" : "queries"} left this month
+                    </p>
+                    <div className="mt-1.5 h-1.5 w-24 overflow-hidden rounded-full bg-mw-border">
+                      <div
+                        className={`h-full rounded-full transition-all ${usagePercent >= 80 ? "bg-rose-400" : "bg-gradient-to-r from-mw-accent to-mw-primary"}`}
+                        style={{ width: `${usagePercent}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+                <span className="text-xs text-mw-body">{isUnlimited ? "∞" : `${queriesUsed}/${monthlyLimit}`}</span>
               </div>
             </div>
 
@@ -234,7 +230,6 @@ export default function AdvisorPage() {
                     >
                       {message.role === "user" ? "Y" : "AI"}
                     </div>
-
                     <div
                       className={`max-w-[78%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
                         message.role === "user"
@@ -242,9 +237,7 @@ export default function AdvisorPage() {
                           : "rounded-tl-sm border border-mw-border bg-mw-soft text-mw-dark"
                       }`}
                     >
-                      {message.role === "user"
-                        ? message.content
-                        : <MessageContent content={message.content} />}
+                      {message.role === "user" ? message.content : <MessageContent content={message.content} />}
                     </div>
                   </div>
                 ))}
@@ -296,8 +289,10 @@ export default function AdvisorPage() {
 
                 {isAtLimit ? (
                   <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-800 dark:bg-rose-950/30 dark:text-rose-300">
-                    <p className="font-semibold">Free query limit reached.</p>
-                    <p className="mt-0.5 text-xs">Upgrade to Pro for unlimited AI advisor access.</p>
+                    <p className="font-semibold">Monthly query limit reached.</p>
+                    <p className="mt-0.5 text-xs">
+                      <a href="/pricing" className="underline underline-offset-2">Upgrade your plan</a> for more AI advisor access.
+                    </p>
                   </div>
                 ) : (
                   <form className="flex gap-2" onSubmit={onSubmit}>

@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { updateProfile } from "firebase/auth";
 import ProtectedRoute from "@/components/auth/protected-route";
 import { useAuth } from "@/contexts/AuthContext";
 import { auth, logout, resetPassword } from "@/lib/firebase";
+import { PLAN_CONFIG } from "@/lib/stripe/config";
 
 type Theme = "light" | "dark";
 
@@ -18,7 +19,9 @@ function applyTheme(theme: Theme) {
 
 export default function SettingsPage() {
   const router = useRouter();
-  const { user, loading } = useAuth();
+  const searchParams = useSearchParams();
+  const upgraded = searchParams.get("upgraded") === "1";
+  const { user, loading, userDoc, userDocLoading } = useAuth();
 
   // ── Name editing ────────────────────────────────────────────────────────────
   const [editingName, setEditingName] = useState(false);
@@ -99,12 +102,46 @@ export default function SettingsPage() {
     setTheme(next);
   }
 
-  // Subscription is hardcoded as Free until Firestore user docs are set up
-  const subscription = "Free Plan";
-  const isPro = false;
+  // ── Billing portal ───────────────────────────────────────────────────────────
+  const [portalLoading, setPortalLoading] = useState(false);
+  const [portalError, setPortalError] = useState("");
+
+  async function handleManageBilling() {
+    if (!user) return;
+    setPortalLoading(true);
+    setPortalError("");
+    try {
+      const token = await user.getIdToken();
+      const res = await fetch("/api/stripe/portal", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json() as { url?: string; error?: string };
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        setPortalError(data.error ?? "Could not open billing portal. Please try again.");
+      }
+    } catch {
+      setPortalError("Could not connect. Please try again.");
+    } finally {
+      setPortalLoading(false);
+    }
+  }
+
+  // ── Plan / subscription ──────────────────────────────────────────────────────
+  const plan = userDoc?.plan ?? "free";
+  const planConfig = PLAN_CONFIG[plan];
+  const isPro = plan === "pro";
+  const isFree = plan === "free";
+  const subscriptionLabel = `${planConfig.label} Plan`;
+  const queriesUsed = userDoc?.advisorQueriesUsed ?? 0;
+  const monthlyLimit = planConfig.monthlyLimit;
+  const isUnlimited = monthlyLimit === Infinity;
+  const usagePercent = isUnlimited ? 0 : Math.min(100, Math.round((queriesUsed / monthlyLimit) * 100));
 
   // ── Loading skeleton ─────────────────────────────────────────────────────────
-  if (loading) {
+  if (loading || userDocLoading) {
     return (
       <main>
         <section className="mw-shell">
@@ -122,6 +159,14 @@ export default function SettingsPage() {
     <main>
       <section className="mw-shell">
         <div className="mx-auto w-full max-w-2xl">
+          {/* Upgrade success banner */}
+          {upgraded && (
+            <div className="mb-4 flex items-center gap-3 rounded-xl border border-teal-200 bg-teal-50 px-4 py-3 text-sm text-teal-800 dark:border-teal-800 dark:bg-teal-950/40 dark:text-teal-300">
+              <span className="text-base">🎉</span>
+              <span className="font-semibold">You&apos;re now on the {userDoc?.plan === "pro" ? "Pro" : "Essential"} plan — welcome aboard!</span>
+            </div>
+          )}
+
           {/* Page header */}
           <div className="mw-page-header">
             <div>
@@ -153,6 +198,8 @@ export default function SettingsPage() {
                   <p className="text-lg font-black text-mw-primary">{name || email}</p>
                   {isPro ? (
                     <span className="mw-badge-pro">Pro</span>
+                  ) : plan === "essential" ? (
+                    <span className="mw-badge border border-mw-accent/40 bg-mw-accent/10 text-mw-accent">Essential</span>
                   ) : (
                     <span className="mw-badge border border-mw-border bg-mw-soft text-mw-light">Free</span>
                   )}
@@ -235,16 +282,51 @@ export default function SettingsPage() {
               </div>
 
               {/* Subscription */}
-              <div className="flex items-center justify-between px-6 py-4">
-                <div>
+              <div className="flex items-start justify-between gap-4 px-6 py-4">
+                <div className="flex-1 min-w-0">
                   <p className="text-xs font-bold uppercase tracking-widest text-mw-light">Subscription</p>
-                  <p className="mt-0.5 text-sm font-semibold text-mw-dark">{subscription}</p>
+                  <p className="mt-0.5 text-sm font-semibold text-mw-dark">{subscriptionLabel}</p>
+                  {/* AI advisor usage */}
+                  <div className="mt-2">
+                    <p className="text-xs text-mw-body">
+                      AI Advisor:{" "}
+                      {isUnlimited
+                        ? <span className="font-semibold text-mw-primary">Unlimited queries</span>
+                        : <span className="font-semibold text-mw-primary">{queriesUsed} / {monthlyLimit} queries used this month</span>
+                      }
+                    </p>
+                    {!isUnlimited && (
+                      <div className="mt-1.5 h-1.5 w-40 overflow-hidden rounded-full bg-mw-border">
+                        <div
+                          className={`h-full rounded-full transition-all ${usagePercent >= 80 ? "bg-rose-400" : "bg-gradient-to-r from-mw-accent to-mw-primary"}`}
+                          style={{ width: `${usagePercent}%` }}
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
-                {!isPro && (
-                  <Link href="/pricing" className="mw-btn-primary py-1.5 text-xs">
-                    Upgrade
-                  </Link>
-                )}
+                <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                  {!isFree && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={handleManageBilling}
+                        disabled={portalLoading}
+                        className="mw-btn-ghost py-1.5 text-xs disabled:opacity-60"
+                      >
+                        {portalLoading ? "Loading…" : "Manage Billing"}
+                      </button>
+                      {portalError && (
+                        <p className="text-right text-xs text-rose-600">{portalError}</p>
+                      )}
+                    </>
+                  )}
+                  {isFree && (
+                    <Link href="/pricing" className="mw-btn-primary py-1.5 text-xs">
+                      Upgrade
+                    </Link>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -299,7 +381,7 @@ export default function SettingsPage() {
           </div>
 
           {/* Plan upgrade prompt */}
-          {!isPro && (
+          {isFree && (
             <div className="mt-5 rounded-2xl border border-mw-accent/30 bg-gradient-to-r from-teal-50 to-white p-5 dark:from-teal-950/20 dark:to-mw-surface">
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>

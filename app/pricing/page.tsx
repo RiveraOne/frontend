@@ -1,4 +1,9 @@
-import Link from "next/link";
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
+import type { UserPlan } from "@/types/user";
 
 const essentialFeatures = [
   { label: "Smart Tracking", detail: "Log income/expenses and see your month at a glance." },
@@ -28,6 +33,80 @@ const compareRows = [
   { feature: "Custom Themes", essential: "Standard", pro: "Library access", proHighlight: true },
 ];
 
+function PlanCTA({
+  plan,
+  label,
+  className,
+}: {
+  plan: UserPlan;
+  label: string;
+  className?: string;
+}) {
+  const { user, userDoc } = useAuth();
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const currentPlan = userDoc?.plan ?? "free";
+  const isCurrent = currentPlan === plan;
+
+  async function handleClick() {
+    if (!user) {
+      router.push(`/register?redirect=/pricing`);
+      return;
+    }
+
+    if (isCurrent) return;
+
+    setLoading(true);
+    setError("");
+    try {
+      const token = await user.getIdToken();
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ plan }),
+      });
+      const data = await res.json() as { url?: string; error?: string };
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        setError(data.error ?? "Something went wrong. Please try again.");
+      }
+    } catch {
+      setError("Could not connect. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  if (isCurrent) {
+    return (
+      <span className={`inline-flex items-center justify-center rounded-xl border-2 border-mw-accent bg-mw-accent/10 px-5 py-2.5 text-sm font-bold text-mw-primary ${className ?? ""}`}>
+        Current Plan ✓
+      </span>
+    );
+  }
+
+  return (
+    <div className="flex flex-col items-stretch gap-1.5">
+      <button
+        onClick={handleClick}
+        disabled={loading}
+        className={`${className ?? ""} disabled:opacity-60`}
+      >
+        {loading ? "Redirecting…" : label}
+      </button>
+      {error && (
+        <p className="text-center text-xs text-rose-600">{error}</p>
+      )}
+    </div>
+  );
+}
+
 export default function PricingPage() {
   const year = new Date().getFullYear();
 
@@ -50,7 +129,7 @@ export default function PricingPage() {
               Compare Features
             </a>
             <a href="#cta" className="mw-btn-primary w-full sm:w-auto">
-              Get Started Free
+              Get Started
             </a>
           </div>
         </header>
@@ -79,9 +158,7 @@ export default function PricingPage() {
               Cancel anytime · Beta pricing
             </p>
 
-            <a href="#cta" className="mw-btn-ghost mt-5 w-full">
-              Choose Essential
-            </a>
+            <PlanCTA plan="essential" label="Choose Essential" className="mw-btn-ghost mt-5 w-full" />
 
             <div className="mw-divider" />
 
@@ -129,9 +206,7 @@ export default function PricingPage() {
               Cancel anytime · Beta pricing
             </p>
 
-            <a href="#cta" className="mw-btn-primary mt-5 w-full">
-              Choose Pro
-            </a>
+            <PlanCTA plan="pro" label="Choose Pro" className="mw-btn-primary mt-5 w-full" />
 
             <div className="mw-divider" />
 
@@ -171,15 +246,11 @@ export default function PricingPage() {
                 <p className="mb-3 text-sm font-semibold text-mw-dark">{row.feature}</p>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-mw-light">
-                      Essential
-                    </p>
+                    <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-mw-light">Essential</p>
                     <p className="text-sm text-mw-body">{row.essential}</p>
                   </div>
                   <div>
-                    <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-mw-accent">
-                      Pro
-                    </p>
+                    <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-mw-accent">Pro</p>
                     <p className={`text-sm font-semibold ${row.proHighlight && row.pro !== "—" ? "text-teal-700 dark:text-teal-400" : "text-mw-body"}`}>
                       {row.pro}
                     </p>
@@ -194,18 +265,12 @@ export default function PricingPage() {
             <table className="w-full min-w-[560px] border-collapse text-sm">
               <thead>
                 <tr className="border-b-2 border-mw-border">
+                  <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-widest text-mw-light">Feature</th>
                   <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-widest text-mw-light">
-                    Feature
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-widest text-mw-light">
-                    Essential{" "}
-                    <span className="font-normal normal-case tracking-normal">$4.99/mo</span>
+                    Essential <span className="font-normal normal-case tracking-normal">$4.99/mo</span>
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-widest text-mw-accent">
-                    Pro{" "}
-                    <span className="font-normal normal-case tracking-normal text-mw-light">
-                      $9.99/mo
-                    </span>
+                    Pro <span className="font-normal normal-case tracking-normal text-mw-light">$9.99/mo</span>
                   </th>
                 </tr>
               </thead>
@@ -242,12 +307,8 @@ export default function PricingPage() {
               </p>
             </div>
             <div className="flex flex-col gap-2 sm:flex-row sm:flex-shrink-0">
-              <Link href="/register" className="mw-btn-ghost w-full sm:w-auto">
-                Start Free
-              </Link>
-              <Link href="/register" className="mw-btn-primary w-full sm:w-auto">
-                Start Pro →
-              </Link>
+              <PlanCTA plan="essential" label="Start Essential" className="mw-btn-ghost w-full sm:w-auto" />
+              <PlanCTA plan="pro" label="Start Pro →" className="mw-btn-primary w-full sm:w-auto" />
             </div>
           </div>
         </section>
