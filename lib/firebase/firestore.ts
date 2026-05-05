@@ -69,12 +69,17 @@ export async function deleteTransaction(
 
 export function subscribeToTransactions(
   userId: string,
-  callback: (transactions: Transaction[]) => void
+  callback: (transactions: Transaction[]) => void,
+  onError?: (error: Error) => void
 ): Unsubscribe {
   const q = query(txCol(userId), orderBy("date", "desc"));
-  return onSnapshot(q, (snap) => {
-    callback(
-      snap.docs.map((d) => ({ id: d.id, ...d.data() } as Transaction))
-    );
-  });
+  return onSnapshot(
+    q,
+    (snap) => {
+      callback(
+        snap.docs.map((d) => ({ id: d.id, ...d.data() } as Transaction))
+      );
+    },
+    onError
+  );
 }

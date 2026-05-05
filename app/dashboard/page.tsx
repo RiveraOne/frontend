@@ -72,10 +72,25 @@ export default function DashboardPage() {
   const firstName = user?.displayName?.split(" ")[0] ?? user?.email?.split("@")[0] ?? "there";
 
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [txLoading, setTxLoading] = useState(true);
+  const [txError, setTxError] = useState("");
 
   useEffect(() => {
     if (!user) return;
-    const unsub = subscribeToTransactions(user.uid, setTransactions);
+    setTxLoading(true);
+    setTxError("");
+    const unsub = subscribeToTransactions(
+      user.uid,
+      (data) => {
+        setTransactions(data);
+        setTxLoading(false);
+      },
+      (error) => {
+        console.error("Dashboard subscription error:", error);
+        setTxError("Could not load your financial snapshot.");
+        setTxLoading(false);
+      }
+    );
     return unsub;
   }, [user]);
 
@@ -128,7 +143,7 @@ export default function DashboardPage() {
               </span>
             </div>
             <p className="mt-3 text-3xl font-black tracking-tight text-mw-primary">
-              ${totalIncome.toLocaleString()}
+              {txLoading ? <span className="inline-block h-9 w-28 animate-pulse rounded-lg bg-mw-border" /> : `$${totalIncome.toLocaleString()}`}
             </p>
             <p className="text-xs text-mw-body">Total this period</p>
           </article>
@@ -145,7 +160,7 @@ export default function DashboardPage() {
               </span>
             </div>
             <p className="mt-3 text-3xl font-black tracking-tight text-mw-primary">
-              ${totalExpenses.toLocaleString()}
+              {txLoading ? <span className="inline-block h-9 w-28 animate-pulse rounded-lg bg-mw-border" /> : `$${totalExpenses.toLocaleString()}`}
             </p>
             <p className="text-xs text-mw-body">{spendRatio}% of income spent</p>
           </article>
@@ -159,8 +174,14 @@ export default function DashboardPage() {
               <span className="text-xs font-semibold text-mw-light">Balance</span>
             </div>
             <p className={`mt-3 text-3xl font-black tracking-tight ${remaining >= 0 ? "text-mw-primary" : "text-rose-600"}`}>
-              ${Math.abs(remaining).toLocaleString()}
-              {remaining < 0 && <span className="ml-1 text-base">deficit</span>}
+              {txLoading ? (
+                <span className="inline-block h-9 w-28 animate-pulse rounded-lg bg-mw-border" />
+              ) : (
+                <>
+                  ${Math.abs(remaining).toLocaleString()}
+                  {remaining < 0 && <span className="ml-1 text-base">deficit</span>}
+                </>
+              )}
             </p>
             <p className="text-xs text-mw-body">Remaining after expenses</p>
           </article>
@@ -171,18 +192,18 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between mb-2">
             <p className="text-sm font-bold text-mw-primary">Budget utilisation</p>
             <span className={`text-sm font-bold ${spendRatio > 80 ? "text-rose-600" : "text-teal-600"}`}>
-              {spendRatio}%
+              {txLoading ? "..." : `${spendRatio}%`}
             </span>
           </div>
           <div className="h-2.5 w-full overflow-hidden rounded-full bg-mw-border">
             <div
               className={`h-full rounded-full transition-all ${spendRatio > 80 ? "bg-rose-400" : "bg-gradient-to-r from-mw-accent to-mw-primary"}`}
-              style={{ width: `${Math.min(spendRatio, 100)}%` }}
+              style={{ width: txLoading ? "0%" : `${Math.min(spendRatio, 100)}%` }}
             />
           </div>
           <div className="mt-2 flex justify-between text-xs text-mw-body">
             <span>$0</span>
-            <span>${totalIncome.toLocaleString()} total income</span>
+            <span>{txLoading ? "Loading income..." : `$${totalIncome.toLocaleString()} total income`}</span>
           </div>
         </div>
 
@@ -226,7 +247,26 @@ export default function DashboardPage() {
             </Link>
           </div>
           <div className="mw-card divide-y divide-mw-border overflow-hidden">
-            {recentTransactions.map((t) => (
+            {txError && (
+              <div className="px-5 py-8 text-center text-sm font-semibold text-rose-600">
+                {txError}
+              </div>
+            )}
+            {!txError && txLoading && (
+              Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="flex items-center justify-between px-5 py-3.5">
+                  <div className="flex items-center gap-3">
+                    <div className="h-8 w-8 animate-pulse rounded-lg bg-mw-border" />
+                    <div>
+                      <div className="h-4 w-24 animate-pulse rounded bg-mw-border" />
+                      <div className="mt-1 h-3 w-16 animate-pulse rounded bg-mw-border" />
+                    </div>
+                  </div>
+                  <div className="h-4 w-16 animate-pulse rounded bg-mw-border" />
+                </div>
+              ))
+            )}
+            {!txError && !txLoading && recentTransactions.map((t) => (
               <div key={t.id} className="flex items-center justify-between px-5 py-3.5 hover:bg-mw-soft transition-colors">
                 <div className="flex items-center gap-3">
                   <div className={`flex h-8 w-8 items-center justify-center rounded-lg text-xs font-bold ${
@@ -246,6 +286,12 @@ export default function DashboardPage() {
                 </span>
               </div>
             ))}
+            {!txError && !txLoading && recentTransactions.length === 0 && (
+              <div className="px-5 py-8 text-center">
+                <p className="text-sm font-semibold text-mw-primary">No transactions yet</p>
+                <p className="mt-1 text-xs text-mw-body">Add your first transaction to build a snapshot.</p>
+              </div>
+            )}
           </div>
         </div>
       </section>

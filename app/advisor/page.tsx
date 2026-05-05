@@ -107,7 +107,14 @@ export default function AdvisorPage() {
 
   useEffect(() => {
     if (!user) return;
-    const unsubscribe = subscribeToTransactions(user.uid, setTransactions);
+    const unsubscribe = subscribeToTransactions(
+      user.uid,
+      setTransactions,
+      (err) => {
+        console.error("Advisor transaction subscription error:", err);
+        setError("Could not load your transactions. Advisor replies may be less personalized.");
+      }
+    );
     return unsubscribe;
   }, [user]);
 

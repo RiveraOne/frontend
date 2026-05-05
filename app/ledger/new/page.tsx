@@ -1,7 +1,8 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
-import { ChangeEvent, FormEvent, useMemo, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import ProtectedRoute from "@/components/auth/protected-route";
 import { useAuth } from "@/contexts/AuthContext";
@@ -20,15 +21,26 @@ export default function NewLedgerEntryPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
+  const parsedAmount = Number(amount);
+  const hasValidAmount = Number.isFinite(parsedAmount) && parsedAmount > 0;
   const canSave = useMemo(
-    () => Boolean(amount && category.trim() && date),
-    [amount, category, date]
+    () => Boolean(hasValidAmount && category.trim() && date),
+    [hasValidAmount, category, date]
   );
 
   function onFileChange(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
-    setPreviewUrl(file ? URL.createObjectURL(file) : "");
+    setPreviewUrl((current) => {
+      if (current) URL.revokeObjectURL(current);
+      return file ? URL.createObjectURL(file) : "";
+    });
   }
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -39,7 +51,7 @@ export default function NewLedgerEntryPage() {
       const trimmedNotes = notes.trim();
       await addTransaction(user.uid, {
         type,
-        amount: Number(amount),
+        amount: parsedAmount,
         category: category.trim(),
         date,
         ...(trimmedNotes ? { notes: trimmedNotes } : {}),
@@ -121,7 +133,7 @@ export default function NewLedgerEntryPage() {
                     <input
                       id="amount"
                       type="number"
-                      min="0"
+                      min="0.01"
                       step="0.01"
                       value={amount}
                       onChange={(e) => setAmount(e.target.value)}
@@ -208,11 +220,15 @@ export default function NewLedgerEntryPage() {
                   />
                 </div>
                 {previewUrl && (
-                  <img
-                    src={previewUrl}
-                    alt="Receipt preview"
-                    className="mt-3 max-h-48 w-full rounded-xl border border-mw-border object-cover"
-                  />
+                  <div className="relative mt-3 h-48 w-full overflow-hidden rounded-xl border border-mw-border">
+                    <Image
+                      src={previewUrl}
+                      alt="Receipt preview"
+                      fill
+                      unoptimized
+                      className="object-cover"
+                    />
+                  </div>
                 )}
               </div>
 

@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
 import { adminAuth } from "@/lib/firebase/admin";
 import {
-  getUserDoc,
+  ensureUserDoc,
   resetAdvisorUsageIfNeeded,
   incrementAdvisorUsage,
-  provisionUserDoc,
 } from "@/lib/firebase/userDoc";
 import { PLAN_CONFIG } from "@/lib/stripe/config";
 import { generateAdvisorReply } from "@/lib/ai/advisor";
@@ -91,18 +90,21 @@ export async function POST(request: Request) {
   }
 
   // ── User doc + plan check ─────────────────────────────────────────────────
-  let userDoc = await getUserDoc(uid);
-
-  if (!userDoc) {
-    await provisionUserDoc(uid, email, name);
-    userDoc = await getUserDoc(uid);
+  let userDoc;
+  try {
+    userDoc = await ensureUserDoc(uid, email, name);
+    userDoc = await resetAdvisorUsageIfNeeded(uid, userDoc);
+  } catch (error) {
+    console.error("Failed to prepare user doc for advisor", error);
+    return NextResponse.json(
+      { error: "Could not prepare your account. Please try again." },
+      { status: 500 }
+    );
   }
 
-  userDoc = await resetAdvisorUsageIfNeeded(uid, userDoc!);
-
-  const plan = userDoc!.plan;
+  const plan = userDoc.plan;
   const planConfig = PLAN_CONFIG[plan];
-  const queriesUsed = userDoc!.advisorQueriesUsed;
+  const queriesUsed = userDoc.advisorQueriesUsed;
   const monthlyLimit = planConfig.monthlyLimit;
 
   if (queriesUsed >= monthlyLimit) {

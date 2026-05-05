@@ -38,24 +38,38 @@ export default function TransactionDetailPage() {
   const [loading, setLoading] = useState(true);
   const [notFoundFlag, setNotFoundFlag] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState("");
 
   // Fetch the specific transaction
   useEffect(() => {
     if (!user) return;
-    getTransaction(user.uid, id).then((tx) => {
-      if (!tx) {
-        setNotFoundFlag(true);
-      } else {
-        setTransaction(tx);
-      }
-      setLoading(false);
-    });
+    getTransaction(user.uid, id)
+      .then((tx) => {
+        if (!tx) {
+          setNotFoundFlag(true);
+        } else {
+          setTransaction(tx);
+        }
+      })
+      .catch((err) => {
+        console.error("Transaction detail load error:", err);
+        setError("Could not load this transaction.");
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, [user, id]);
 
   // Subscribe to all transactions for context stats
   useEffect(() => {
     if (!user) return;
-    const unsub = subscribeToTransactions(user.uid, setAllTransactions);
+    const unsub = subscribeToTransactions(
+      user.uid,
+      setAllTransactions,
+      (err) => {
+        console.error("Related transactions subscription error:", err);
+      }
+    );
     return unsub;
   }, [user]);
 
@@ -83,6 +97,20 @@ export default function TransactionDetailPage() {
           </div>
         </section>
       </main>
+    );
+  }
+
+  if (error) {
+    return (
+      <ProtectedRoute>
+        <main>
+          <section className="mw-shell">
+            <div className="mx-auto w-full max-w-2xl rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+              {error}
+            </div>
+          </section>
+        </main>
+      </ProtectedRoute>
     );
   }
 

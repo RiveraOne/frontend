@@ -13,14 +13,25 @@ export default function LedgerPage() {
 
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [txLoading, setTxLoading] = useState(true);
+  const [txError, setTxError] = useState("");
   const [selectedMonth, setSelectedMonth] = useState("all");
 
   useEffect(() => {
     if (!user) return;
-    const unsub = subscribeToTransactions(user.uid, (data) => {
-      setTransactions(data);
-      setTxLoading(false);
-    });
+    setTxLoading(true);
+    setTxError("");
+    const unsub = subscribeToTransactions(
+      user.uid,
+      (data) => {
+        setTransactions(data);
+        setTxLoading(false);
+      },
+      (error) => {
+        console.error("Ledger subscription error:", error);
+        setTxError("Could not load transactions. Please check your connection and Firestore rules.");
+        setTxLoading(false);
+      }
+    );
     return unsub;
   }, [user]);
 
@@ -120,7 +131,13 @@ export default function LedgerPage() {
                 </tr>
               </thead>
               <tbody>
-                {isLoading ? (
+                {txError ? (
+                  <tr>
+                    <td colSpan={5} className="px-5 py-16 text-center">
+                      <p className="text-sm font-semibold text-rose-600">{txError}</p>
+                    </td>
+                  </tr>
+                ) : isLoading ? (
                   Array.from({ length: 5 }).map((_, i) => (
                     <tr key={i} className="border-b border-mw-border/50">
                       {Array.from({ length: 5 }).map((_, j) => (

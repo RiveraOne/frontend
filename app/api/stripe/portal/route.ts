@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { adminAuth } from "@/lib/firebase/admin";
-import { getUserDoc } from "@/lib/firebase/userDoc";
+import { ensureUserDoc, upsertUserDoc } from "@/lib/firebase/userDoc";
 import { stripe } from "@/lib/stripe/client";
+import { isMissingStripeResource, messageForStripeError } from "@/lib/stripe/errors";
 
 export const runtime = "nodejs";
 
@@ -14,24 +15,47 @@ export async function POST(request: Request) {
   }
 
   let uid: string;
+  let email: string | null;
+  let name: string | null;
+
   try {
     const decoded = await adminAuth.verifyIdToken(token);
     uid = decoded.uid;
+    email = decoded.email ?? null;
+    name = decoded.name ?? null;
   } catch {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const userDoc = await getUserDoc(uid);
+  const userDoc = await ensureUserDoc(uid, email, name);
   if (!userDoc?.stripeCustomerId) {
     return NextResponse.json({ error: "No billing account found" }, { status: 404 });
   }
 
   const origin = request.headers.get("origin") ?? "http://localhost:3000";
 
-  const session = await stripe.billingPortal.sessions.create({
-    customer: userDoc.stripeCustomerId,
-    return_url: `${origin}/settings`,
-  });
+  try {
+    await stripe.customers.retrieve(userDoc.stripeCustomerId);
 
-  return NextResponse.json({ url: session.url });
+    const session = await stripe.billingPortal.sessions.create({
+      customer: userDoc.stripeCustomerId,
+      return_url: `${origin}/settings`,
+    });
+
+    return NextResponse.json({ url: session.url });
+  } catch (error) {
+    if (isMissingStripeResource(error)) {
+      await upsertUserDoc(uid, { stripeCustomerId: null });
+      return NextResponse.json(
+        { error: "No billing account found. Please start checkout again." },
+        { status: 404 }
+      );
+    }
+
+    console.error("Failed to create Stripe portal session", error);
+    return NextResponse.json(
+      { error: messageForStripeError(error, "Could not create Stripe billing portal session. Please try again.") },
+      { status: 500 }
+    );
+  }
 }

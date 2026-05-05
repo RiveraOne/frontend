@@ -2,6 +2,8 @@ import { FieldValue } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase/admin";
 import type { UserDoc, UserPlan } from "@/types/user";
 
+const USER_PLANS = new Set<UserPlan>(["free", "essential", "pro"]);
+
 function firstOfCurrentMonth(): string {
   const now = new Date();
   return new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
@@ -9,6 +11,8 @@ function firstOfCurrentMonth(): string {
 
 function isNewMonth(resetAt: string): boolean {
   const reset = new Date(resetAt);
+  if (Number.isNaN(reset.getTime())) return true;
+
   const now = new Date();
   return (
     now.getFullYear() > reset.getFullYear() ||
@@ -17,6 +21,40 @@ function isNewMonth(resetAt: string): boolean {
 }
 
 const usersCol = () => adminDb.collection("users");
+
+function isUserPlan(plan: unknown): plan is UserPlan {
+  return typeof plan === "string" && USER_PLANS.has(plan as UserPlan);
+}
+
+function buildCompleteUserDoc(
+  uid: string,
+  fields: Partial<UserDoc>,
+  email: string | null,
+  displayName: string | null
+): UserDoc {
+  const now = new Date().toISOString();
+
+  return {
+    uid,
+    email: fields.email ?? email,
+    displayName: fields.displayName ?? displayName,
+    plan: isUserPlan(fields.plan) ? fields.plan : "free",
+    stripeCustomerId: fields.stripeCustomerId ?? null,
+    stripeSubscriptionId: fields.stripeSubscriptionId ?? null,
+    subscriptionStatus: fields.subscriptionStatus ?? null,
+    advisorQueriesUsed:
+      typeof fields.advisorQueriesUsed === "number" &&
+      Number.isFinite(fields.advisorQueriesUsed)
+        ? fields.advisorQueriesUsed
+        : 0,
+    advisorQueriesResetAt:
+      typeof fields.advisorQueriesResetAt === "string"
+        ? fields.advisorQueriesResetAt
+        : firstOfCurrentMonth(),
+    createdAt: fields.createdAt ?? now,
+    updatedAt: now,
+  };
+}
 
 export async function getUserDoc(uid: string): Promise<UserDoc | null> {
   const snap = await usersCol().doc(uid).get();
@@ -37,27 +75,22 @@ export async function provisionUserDoc(
   email: string | null,
   displayName: string | null
 ): Promise<void> {
+  await ensureUserDoc(uid, email, displayName);
+}
+
+export async function ensureUserDoc(
+  uid: string,
+  email: string | null,
+  displayName: string | null
+): Promise<UserDoc> {
   const ref = usersCol().doc(uid);
   const snap = await ref.get();
 
-  if (snap.exists) return; // idempotent — never overwrite existing plan
+  const existing = snap.exists ? (snap.data() as Partial<UserDoc>) : {};
+  const doc = buildCompleteUserDoc(uid, existing, email, displayName);
 
-  const now = new Date().toISOString();
-  const doc: UserDoc = {
-    uid,
-    email,
-    displayName,
-    plan: "free",
-    stripeCustomerId: null,
-    stripeSubscriptionId: null,
-    subscriptionStatus: null,
-    advisorQueriesUsed: 0,
-    advisorQueriesResetAt: firstOfCurrentMonth(),
-    createdAt: now,
-    updatedAt: now,
-  };
-
-  await ref.set(doc);
+  await ref.set(doc, { merge: true });
+  return doc;
 }
 
 export async function resetAdvisorUsageIfNeeded(

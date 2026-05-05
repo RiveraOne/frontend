@@ -53,10 +53,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (firebaseUser) {
         setUserDocLoading(true);
-        unsubscribeUserDoc = subscribeToUserDoc(firebaseUser.uid, (doc) => {
-          setUserDoc(doc);
-          setUserDocLoading(false);
-        });
+        unsubscribeUserDoc = subscribeToUserDoc(
+          firebaseUser.uid,
+          (doc) => {
+            setUserDoc(doc);
+            setUserDocLoading(false);
+          },
+          (error) => {
+            console.error("User doc subscription error:", error);
+            setUserDoc(null);
+            setUserDocLoading(false);
+          }
+        );
       } else {
         setUserDoc(null);
         setUserDocLoading(false);

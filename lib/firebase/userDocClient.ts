@@ -6,10 +6,15 @@ import type { UserDoc } from "@/types/user";
 
 export function subscribeToUserDoc(
   uid: string,
-  callback: (userDoc: UserDoc | null) => void
+  callback: (userDoc: UserDoc | null) => void,
+  onError?: (error: Error) => void
 ): () => void {
   const ref = doc(db, "users", uid);
-  return onSnapshot(ref, (snap) => {
-    callback(snap.exists() ? (snap.data() as UserDoc) : null);
-  });
+  return onSnapshot(
+    ref,
+    (snap) => {
+      callback(snap.exists() ? (snap.data() as UserDoc) : null);
+    },
+    onError
+  );
 }
