@@ -4,7 +4,11 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import ProtectedRoute from "@/components/auth/protected-route";
 import { useAuth } from "@/contexts/AuthContext";
-import { subscribeToTransactions, type Transaction } from "@/lib/firebase";
+import {
+  friendlyFirestoreError,
+  subscribeToTransactions,
+  type Transaction,
+} from "@/lib/firebase";
 
 function ArrowUpIcon() {
   return (
@@ -87,7 +91,7 @@ export default function DashboardPage() {
       },
       (error) => {
         console.error("Dashboard subscription error:", error);
-        setTxError("Could not load your financial snapshot.");
+        setTxError(friendlyFirestoreError(error));
         setTxLoading(false);
       }
     );

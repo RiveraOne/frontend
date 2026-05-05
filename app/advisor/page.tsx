@@ -3,7 +3,11 @@
 import React, { FormEvent, useEffect, useRef, useState } from "react";
 import PlanProtectedRoute from "@/components/auth/plan-protected-route";
 import { useAuth } from "@/contexts/AuthContext";
-import { subscribeToTransactions, type Transaction } from "@/lib/firebase";
+import {
+  friendlyFirestoreError,
+  subscribeToTransactions,
+  type Transaction,
+} from "@/lib/firebase";
 import { PLAN_CONFIG } from "@/lib/stripe/config";
 
 type ChatMessage = {
@@ -112,7 +116,7 @@ export default function AdvisorPage() {
       setTransactions,
       (err) => {
         console.error("Advisor transaction subscription error:", err);
-        setError("Could not load your transactions. Advisor replies may be less personalized.");
+        setError(`${friendlyFirestoreError(err)} Advisor replies may be less personalized.`);
       }
     );
     return unsubscribe;

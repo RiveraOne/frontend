@@ -4,6 +4,7 @@ export {
   addTransaction,
   getTransaction,
   deleteTransaction,
+  friendlyFirestoreError,
   subscribeToTransactions,
   type Transaction,
   type TransactionType,

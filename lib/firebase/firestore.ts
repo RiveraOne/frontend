@@ -15,6 +15,14 @@ import app from "./config";
 
 export const db = getFirestore(app);
 
+export function friendlyFirestoreError(error: Error): string {
+  if ("code" in error && error.code === "permission-denied") {
+    return "Missing Firestore permission. Deploy firestore.rules so signed-in users can read and write their own transactions.";
+  }
+
+  return "Could not load transactions. Please check your connection and try again.";
+}
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export type TransactionType = "Income" | "Expense";
@@ -36,6 +44,38 @@ function txCol(userId: string) {
   return collection(db, "users", userId, "transactions");
 }
 
+function dateToInputString(value: unknown): string {
+  if (typeof value === "string") return value;
+
+  if (value instanceof Timestamp) {
+    return value.toDate().toISOString().slice(0, 10);
+  }
+
+  if (
+    typeof value === "object" &&
+    value !== null &&
+    "seconds" in value &&
+    typeof value.seconds === "number"
+  ) {
+    return new Date(value.seconds * 1000).toISOString().slice(0, 10);
+  }
+
+  return "";
+}
+
+function normalizeTransaction(id: string, data: Record<string, unknown>): Transaction {
+  return {
+    id,
+    date: dateToInputString(data.date),
+    type: data.type === "Income" ? "Income" : "Expense",
+    amount: typeof data.amount === "number" && Number.isFinite(data.amount) ? data.amount : 0,
+    category: typeof data.category === "string" ? data.category : "Uncategorized",
+    ...(typeof data.notes === "string" && data.notes ? { notes: data.notes } : {}),
+    ...(typeof data.receiptUrl === "string" && data.receiptUrl ? { receiptUrl: data.receiptUrl } : {}),
+    createdAt: data.createdAt instanceof Timestamp ? data.createdAt : Timestamp.now(),
+  };
+}
+
 // ─── CRUD ─────────────────────────────────────────────────────────────────────
 
 export async function addTransaction(
@@ -55,7 +95,7 @@ export async function getTransaction(
 ): Promise<Transaction | null> {
   const snap = await getDoc(doc(db, "users", userId, "transactions", id));
   if (!snap.exists()) return null;
-  return { id: snap.id, ...snap.data() } as Transaction;
+  return normalizeTransaction(snap.id, snap.data());
 }
 
 export async function deleteTransaction(
@@ -77,7 +117,7 @@ export function subscribeToTransactions(
     q,
     (snap) => {
       callback(
-        snap.docs.map((d) => ({ id: d.id, ...d.data() } as Transaction))
+        snap.docs.map((d) => normalizeTransaction(d.id, d.data()))
       );
     },
     onError

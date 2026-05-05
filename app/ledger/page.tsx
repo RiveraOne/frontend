@@ -5,7 +5,11 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import ProtectedRoute from "@/components/auth/protected-route";
 import { useAuth } from "@/contexts/AuthContext";
-import { subscribeToTransactions, type Transaction } from "@/lib/firebase";
+import {
+  friendlyFirestoreError,
+  subscribeToTransactions,
+  type Transaction,
+} from "@/lib/firebase";
 
 export default function LedgerPage() {
   const router = useRouter();
@@ -28,7 +32,7 @@ export default function LedgerPage() {
       },
       (error) => {
         console.error("Ledger subscription error:", error);
-        setTxError("Could not load transactions. Please check your connection and Firestore rules.");
+        setTxError(friendlyFirestoreError(error));
         setTxLoading(false);
       }
     );
