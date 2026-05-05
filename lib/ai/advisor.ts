@@ -1,5 +1,5 @@
 import { aiConfig } from "@/lib/ai/config";
-import { generateWithOllama } from "@/lib/ai/ollama";
+import { generateWithOpenAI } from "@/lib/ai/openai";
 import { buildConversation, buildAdvisorSystemPrompt } from "@/lib/ai/prompt";
 import { buildFinancialSummary } from "@/lib/ai/summary";
 import type { AdvisorRequest, AdvisorResponse } from "@/lib/ai/types";
@@ -10,7 +10,7 @@ export async function generateAdvisorReply(
   const summary = buildFinancialSummary(input.transactions || []);
   const conversation = buildConversation(input.messages).slice(-aiConfig.maxMessages);
 
-  const content = await generateWithOllama([
+  const content = await generateWithOpenAI([
     {
       role: "system",
       content: buildAdvisorSystemPrompt({
@@ -27,8 +27,8 @@ export async function generateAdvisorReply(
       content,
     },
     meta: {
-      provider: "ollama",
-      model: aiConfig.ollamaModel,
+      provider: "openai",
+      model: aiConfig.openaiModel,
       transactionCount: summary.transactionCount,
       generatedAt: new Date().toISOString(),
       summary,

@@ -6,8 +6,8 @@ function parsePositiveInt(value: string | undefined, fallback: number) {
 }
 
 export const aiConfig = {
-  ollamaBaseUrl: process.env.OLLAMA_BASE_URL || "http://127.0.0.1:11434",
-  ollamaModel: process.env.OLLAMA_MODEL || "gemma3:4b",
+  openaiApiKey: process.env.OPENAI_API_KEY || "",
+  openaiModel: process.env.OPENAI_MODEL || "gpt-4.1-nano",
   maxMessages: parsePositiveInt(process.env.AI_ADVISOR_MAX_MESSAGES, 8),
   maxTransactions: parsePositiveInt(process.env.AI_ADVISOR_MAX_TRANSACTIONS, 100),
 };

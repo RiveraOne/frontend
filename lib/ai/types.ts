@@ -52,7 +52,7 @@ export type AdvisorRequest = {
 export type AdvisorResponse = {
   reply: AdvisorMessage;
   meta: {
-    provider: "ollama";
+    provider: "openai";
     model: string;
     transactionCount: number;
     generatedAt: string;
