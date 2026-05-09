@@ -3,11 +3,6 @@
 import React, { FormEvent, useEffect, useRef, useState } from "react";
 import PlanProtectedRoute from "@/components/auth/plan-protected-route";
 import { useAuth } from "@/contexts/AuthContext";
-import {
-  friendlyFirestoreError,
-  subscribeToTransactions,
-  type Transaction,
-} from "@/lib/firebase";
 import { PLAN_CONFIG } from "@/lib/stripe/config";
 
 type ChatMessage = {
@@ -92,7 +87,6 @@ export default function AdvisorPage() {
         "Hi! I'm your AI financial advisor. Ask me anything about your money — budgeting, saving, spending decisions, or debt.",
     },
   ]);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [query, setQuery] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [error, setError] = useState("");
@@ -108,19 +102,6 @@ export default function AdvisorPage() {
   const isAtLimit = !isUnlimited && queriesUsed >= monthlyLimit;
   const remaining = isUnlimited ? null : Math.max(0, monthlyLimit - queriesUsed);
   const usagePercent = isUnlimited ? 0 : Math.min(100, Math.round((queriesUsed / monthlyLimit) * 100));
-
-  useEffect(() => {
-    if (!user) return;
-    const unsubscribe = subscribeToTransactions(
-      user.uid,
-      setTransactions,
-      (err) => {
-        console.error("Advisor transaction subscription error:", err);
-        setError(`${friendlyFirestoreError(err)} Advisor replies may be less personalized.`);
-      }
-    );
-    return unsubscribe;
-  }, [user]);
 
   useEffect(() => {
     if (isInitialMount.current) { isInitialMount.current = false; return; }
@@ -148,7 +129,7 @@ export default function AdvisorPage() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ messages: nextMessages, transactions }),
+        body: JSON.stringify({ messages: nextMessages }),
       });
 
       const data = await response.json() as {

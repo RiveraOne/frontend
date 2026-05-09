@@ -5,13 +5,12 @@ import {
   resetAdvisorUsageIfNeeded,
   incrementAdvisorUsage,
 } from "@/lib/firebase/userDoc";
+import { getAdvisorTransactions } from "@/lib/firebase/transactionsAdmin";
+import { hasPaidAdvisorAccess } from "@/lib/auth/entitlements";
 import { PLAN_CONFIG } from "@/lib/stripe/config";
 import { generateAdvisorReply } from "@/lib/ai/advisor";
-import type {
-  AdvisorMessage,
-  AdvisorRequest,
-  AdvisorTransaction,
-} from "@/lib/ai/types";
+import { aiConfig } from "@/lib/ai/config";
+import type { AdvisorMessage, AdvisorRequest } from "@/lib/ai/types";
 
 export const runtime = "nodejs";
 
@@ -25,27 +24,13 @@ function isValidMessage(value: unknown): value is AdvisorMessage {
   );
 }
 
-function isValidTransaction(value: unknown): value is AdvisorTransaction {
-  if (!value || typeof value !== "object") return false;
-  const transaction = value as Record<string, unknown>;
-  return (
-    typeof transaction.date === "string" &&
-    (transaction.type === "Income" || transaction.type === "Expense") &&
-    typeof transaction.amount === "number" &&
-    Number.isFinite(transaction.amount) &&
-    typeof transaction.category === "string" &&
-    transaction.category.trim().length > 0
-  );
-}
-
-function parseAdvisorRequest(body: unknown): AdvisorRequest {
+function parseAdvisorRequest(body: unknown): Pick<AdvisorRequest, "messages"> {
   if (!body || typeof body !== "object") {
     throw new Error("Request body must be a JSON object.");
   }
 
   const input = body as Record<string, unknown>;
   const messages = input.messages;
-  const transactions = input.transactions;
 
   if (!Array.isArray(messages) || messages.length === 0) {
     throw new Error("`messages` must be a non-empty array.");
@@ -55,16 +40,7 @@ function parseAdvisorRequest(body: unknown): AdvisorRequest {
     throw new Error("Each message must include a valid role and content.");
   }
 
-  if (transactions !== undefined) {
-    if (!Array.isArray(transactions)) {
-      throw new Error("`transactions` must be an array when provided.");
-    }
-    if (!transactions.every(isValidTransaction)) {
-      throw new Error("Each transaction must include date, type, amount, and category.");
-    }
-  }
-
-  return { messages, transactions };
+  return { messages };
 }
 
 export async function POST(request: Request) {
@@ -107,9 +83,9 @@ export async function POST(request: Request) {
   const queriesUsed = userDoc.advisorQueriesUsed;
   const monthlyLimit = planConfig.monthlyLimit;
 
-  if (plan === "free") {
+  if (!hasPaidAdvisorAccess(userDoc)) {
     return NextResponse.json(
-      { error: "Choose a paid plan to unlock the AI Advisor.", plan },
+      { error: "Choose an active paid plan to unlock the AI Advisor.", plan },
       { status: 403 }
     );
   }
@@ -130,9 +106,11 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const input = parseAdvisorRequest(body);
+    const transactions = await getAdvisorTransactions(uid, aiConfig.maxTransactions);
 
     const response = await generateAdvisorReply({
       ...input,
+      transactions,
       userProfile: { displayName: name, email, plan },
     });
 
@@ -142,8 +120,21 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ ...response, meta: { ...response.meta, queriesRemaining: remaining } });
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Failed to generate advisor reply.";
-    return NextResponse.json({ error: message }, { status: 400 });
+    const message = error instanceof Error ? error.message : "Failed to generate advisor reply.";
+    const isValidationError =
+      error instanceof SyntaxError ||
+      message.startsWith("Request body") ||
+      message.includes("`messages`") ||
+      message.startsWith("Each message");
+
+    if (isValidationError) {
+      return NextResponse.json({ error: message }, { status: 400 });
+    }
+
+    console.error("Failed to generate advisor reply", error);
+    return NextResponse.json(
+      { error: "The AI service could not respond right now. Please try again." },
+      { status: 502 }
+    );
   }
 }

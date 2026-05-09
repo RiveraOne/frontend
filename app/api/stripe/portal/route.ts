@@ -3,6 +3,7 @@ import { adminAuth } from "@/lib/firebase/admin";
 import { ensureUserDoc, upsertUserDoc } from "@/lib/firebase/userDoc";
 import { stripe } from "@/lib/stripe/client";
 import { isMissingStripeResource, messageForStripeError } from "@/lib/stripe/errors";
+import { getAppBaseUrl } from "@/lib/routes/appUrl";
 
 export const runtime = "nodejs";
 
@@ -36,9 +37,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "No billing account found" }, { status: 404 });
   }
 
-  const origin = request.headers.get("origin") ?? "http://localhost:3000";
-
   try {
+    const appBaseUrl = getAppBaseUrl(request);
     const customer = await stripe.customers.retrieve(userDoc.stripeCustomerId);
     if (isDeletedStripeCustomer(customer)) {
       await upsertUserDoc(uid, { stripeCustomerId: null });
@@ -50,11 +50,18 @@ export async function POST(request: Request) {
 
     const session = await stripe.billingPortal.sessions.create({
       customer: userDoc.stripeCustomerId,
-      return_url: `${origin}/settings`,
+      return_url: `${appBaseUrl}/settings`,
     });
 
     return NextResponse.json({ url: session.url });
   } catch (error) {
+    if (error instanceof Error && error.message.includes("APP_URL")) {
+      return NextResponse.json(
+        { error: "App URL is not configured for billing redirects." },
+        { status: 500 }
+      );
+    }
+
     if (isMissingStripeResource(error)) {
       await upsertUserDoc(uid, { stripeCustomerId: null });
       return NextResponse.json(

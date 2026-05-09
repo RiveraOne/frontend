@@ -24,9 +24,9 @@ export const PLAN_CONFIG: Record<UserPlan, PlanConfig> = {
   },
 };
 
-export function planFromPriceId(priceId: string): UserPlan {
+export function planFromPriceId(priceId: string): UserPlan | null {
   for (const [plan, config] of Object.entries(PLAN_CONFIG)) {
     if (config.priceId === priceId) return plan as UserPlan;
   }
-  return "free";
+  return null;
 }

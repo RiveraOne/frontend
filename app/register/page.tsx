@@ -85,8 +85,8 @@ export default function RegisterPage() {
               {[
                 { label: "Full ledger tracking", detail: "Log income and expenses instantly" },
                 { label: "Live balance overview", detail: "See your true position at a glance" },
-                { label: "AI advisor (5 queries/day)", detail: "Get smart money guidance" },
-                { label: "Receipt image upload", detail: "Store proof of purchase securely" },
+                { label: "Paid AI advisor access", detail: "Upgrade when you want smart money guidance" },
+                { label: "Receipt-ready ledger", detail: "Track purchases now; secure upload is coming" },
               ].map((item) => (
                 <div key={item.label} className="flex items-start gap-3">
                   <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-mw-accent/20 text-[10px] font-bold text-mw-accent">

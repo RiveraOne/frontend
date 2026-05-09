@@ -8,6 +8,7 @@ import ProtectedRoute from "@/components/auth/protected-route";
 import { useAuth } from "@/contexts/AuthContext";
 import { auth, logout, resetPassword } from "@/lib/firebase";
 import { PLAN_CONFIG } from "@/lib/stripe/config";
+import { hasPaidAdvisorAccess } from "@/lib/auth/entitlements";
 
 type Theme = "light" | "dark";
 
@@ -134,11 +135,24 @@ export default function SettingsPage() {
   const planConfig = PLAN_CONFIG[plan];
   const isPro = plan === "pro";
   const isFree = plan === "free";
-  const subscriptionLabel = `${planConfig.label} Plan`;
+  const canUseAdvisor = hasPaidAdvisorAccess(userDoc);
+  const subscriptionStatus = userDoc?.subscriptionStatus;
+  const statusSuffix =
+    !isFree && subscriptionStatus && subscriptionStatus !== "active"
+      ? ` (${subscriptionStatus.replace(/_/g, " ")})`
+      : "";
+  const subscriptionLabel = `${planConfig.label} Plan${statusSuffix}`;
   const queriesUsed = userDoc?.advisorQueriesUsed ?? 0;
   const monthlyLimit = planConfig.monthlyLimit;
   const isUnlimited = monthlyLimit === Infinity;
   const usagePercent = isUnlimited ? 0 : Math.min(100, Math.round((queriesUsed / monthlyLimit) * 100));
+  const advisorUsageLabel = isFree
+    ? <span className="font-semibold text-mw-body">Upgrade to unlock</span>
+    : !canUseAdvisor
+      ? <span className="font-semibold text-rose-600">Inactive until subscription is active</span>
+      : isUnlimited
+        ? <span className="font-semibold text-mw-primary">Unlimited queries</span>
+        : <span className="font-semibold text-mw-primary">{queriesUsed} / {monthlyLimit} queries used this month</span>;
 
   // ── Loading skeleton ─────────────────────────────────────────────────────────
   if (loading || userDocLoading) {
@@ -289,13 +303,9 @@ export default function SettingsPage() {
                   {/* AI advisor usage */}
                   <div className="mt-2">
                     <p className="text-xs text-mw-body">
-                      AI Advisor:{" "}
-                      {isUnlimited
-                        ? <span className="font-semibold text-mw-primary">Unlimited queries</span>
-                        : <span className="font-semibold text-mw-primary">{queriesUsed} / {monthlyLimit} queries used this month</span>
-                      }
+                      AI Advisor: {advisorUsageLabel}
                     </p>
-                    {!isUnlimited && (
+                    {canUseAdvisor && !isUnlimited && (
                       <div className="mt-1.5 h-1.5 w-40 overflow-hidden rounded-full bg-mw-border">
                         <div
                           className={`h-full rounded-full transition-all ${usagePercent >= 80 ? "bg-rose-400" : "bg-gradient-to-r from-mw-accent to-mw-primary"}`}

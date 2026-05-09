@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe/client";
 import { planFromPriceId } from "@/lib/stripe/config";
 import { upsertUserDoc } from "@/lib/firebase/userDoc";
+import type { UserPlan } from "@/types/user";
 
 export const runtime = "nodejs";
 
@@ -39,19 +40,25 @@ export async function POST(request: Request) {
             ? session.customer
             : (session.customer?.id ?? null);
 
-        // Retrieve subscription to get the price ID
-        let plan: ReturnType<typeof planFromPriceId> = "free";
+        let plan: UserPlan = "free";
+        let subscriptionStatus: string | null = null;
         if (subscriptionId) {
           const sub = await stripe.subscriptions.retrieve(subscriptionId);
           const priceId = sub.items.data[0]?.price.id ?? "";
-          plan = planFromPriceId(priceId);
+          const pricePlan = planFromPriceId(priceId);
+          subscriptionStatus = sub.status;
+          if (pricePlan) {
+            plan = pricePlan;
+          } else {
+            console.error("Stripe webhook received checkout for unknown price ID", { priceId, subscriptionId });
+          }
         }
 
         await upsertUserDoc(uid, {
           plan,
           stripeCustomerId: customerId,
           stripeSubscriptionId: subscriptionId,
-          subscriptionStatus: "active",
+          subscriptionStatus,
         });
         break;
       }
@@ -62,14 +69,21 @@ export async function POST(request: Request) {
           typeof sub.customer === "string" ? sub.customer : sub.customer.id;
 
         const priceId = sub.items.data[0]?.price.id ?? "";
-        const plan = planFromPriceId(priceId);
+        const pricePlan = planFromPriceId(priceId);
 
         // Find user doc by stripeCustomerId
         const uid = await findUidByCustomerId(customerId);
         if (!uid) break;
+        if (!pricePlan) {
+          console.error("Stripe webhook received subscription update for unknown price ID", {
+            priceId,
+            subscriptionId: sub.id,
+            customerId,
+          });
+        }
 
         await upsertUserDoc(uid, {
-          plan,
+          plan: pricePlan ?? "free",
           stripeSubscriptionId: sub.id,
           subscriptionStatus: sub.status,
         });

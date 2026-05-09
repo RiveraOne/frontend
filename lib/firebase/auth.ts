@@ -20,7 +20,7 @@ async function provision(credential: UserCredential): Promise<void> {
       headers: { Authorization: `Bearer ${token}` },
     });
   } catch {
-    // provision failure is non-fatal — AuthContext will retry on next load
+    // Provision failure is non-fatal; server routes also backfill before paid flows.
   }
 }
 
@@ -41,7 +41,9 @@ export async function loginWithEmail(
   email: string,
   password: string
 ): Promise<UserCredential> {
-  return signInWithEmailAndPassword(auth, email, password);
+  const credential = await signInWithEmailAndPassword(auth, email, password);
+  await provision(credential);
+  return credential;
 }
 
 // ─── Google OAuth ─────────────────────────────────────────────────────────────

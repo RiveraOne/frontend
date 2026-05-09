@@ -10,20 +10,57 @@ service cloud.firestore {
       return signedIn() && request.auth.uid == userId;
     }
 
+    function hasOnlyTransactionFields() {
+      return request.resource.data.keys().hasOnly([
+        "type",
+        "amount",
+        "category",
+        "date",
+        "notes",
+        "receiptUrl",
+        "createdAt"
+      ]);
+    }
+
+    function hasRequiredTransactionFields() {
+      return request.resource.data.keys().hasAll([
+        "type",
+        "amount",
+        "category",
+        "date",
+        "createdAt"
+      ]);
+    }
+
+    function validTransactionCreate() {
+      return hasOnlyTransactionFields()
+        && hasRequiredTransactionFields()
+        && request.resource.data.type in ["Income", "Expense"]
+        && request.resource.data.amount is number
+        && request.resource.data.amount > 0
+        && request.resource.data.amount <= 100000000
+        && request.resource.data.category is string
+        && request.resource.data.category.size() > 0
+        && request.resource.data.category.size() <= 80
+        && request.resource.data.date is string
+        && request.resource.data.date.matches("^\\d{4}-\\d{2}-\\d{2}$")
+        && request.resource.data.createdAt is timestamp
+        && (!("notes" in request.resource.data)
+          || (request.resource.data.notes is string
+            && request.resource.data.notes.size() <= 500))
+        && (!("receiptUrl" in request.resource.data)
+          || (request.resource.data.receiptUrl is string
+            && request.resource.data.receiptUrl.size() <= 2048));
+    }
+
     match /users/{userId} {
       allow read: if ownsUserDoc(userId);
-      allow create: if ownsUserDoc(userId);
-      allow update: if ownsUserDoc(userId);
+      allow create, update: if false;
       allow delete: if false;
 
       match /transactions/{transactionId} {
         allow read: if ownsUserDoc(userId);
-        allow create: if ownsUserDoc(userId)
-          && request.resource.data.type in ["Income", "Expense"]
-          && request.resource.data.amount is number
-          && request.resource.data.amount > 0
-          && request.resource.data.category is string
-          && request.resource.data.date is string;
+        allow create: if ownsUserDoc(userId) && validTransactionCreate();
         allow update: if false;
         allow delete: if ownsUserDoc(userId);
       }

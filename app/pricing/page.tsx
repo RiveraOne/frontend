@@ -9,7 +9,7 @@ const essentialFeatures = [
   { label: "Smart Tracking", detail: "Log income/expenses and see your month at a glance." },
   { label: "Health Dashboard", detail: "Clear totals, category spend, and what is left." },
   { label: "Purchase Checks (Limited)", detail: "Quick sanity checks to reduce impulse spending." },
-  { label: "Receipt Upload (5 GB)", detail: "Store receipts and proof of purchase securely." },
+  { label: "Receipt-ready ledger", detail: "Attach proof of purchase once secure storage launches." },
 ];
 
 const proFeatures = [
@@ -24,7 +24,7 @@ const compareRows = [
   { feature: "Smart Income & Expense Tracking", essential: "✔ Full access", pro: "✔ Full access", proHighlight: false },
   { feature: "Monthly Financial Health Dashboard", essential: "✔", pro: "✔ Advanced", proHighlight: true },
   { feature: "Can I Afford This? Purchase Check", essential: "Limited checks", pro: "Unlimited", proHighlight: true },
-  { feature: "Receipt Upload & Proof Storage", essential: "5 GB vault", pro: "Upgraded vault", proHighlight: true },
+  { feature: "Receipt-ready Ledger", essential: "Included", pro: "Included", proHighlight: false },
   { feature: "30-30-40 Smart Budget Mode", essential: "Basic tracking", pro: "Customizable splits", proHighlight: true },
   { feature: "Investment Insight Suggestions", essential: "—", pro: "✔ Gold & Index ideas", proHighlight: true },
   { feature: "Surplus Allocation Guidance", essential: "—", pro: "✔ Personalized", proHighlight: true },

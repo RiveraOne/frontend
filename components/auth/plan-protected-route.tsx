@@ -5,6 +5,7 @@ import { useEffect, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import ProtectedRoute from "@/components/auth/protected-route";
 import { useAuth } from "@/contexts/AuthContext";
+import { hasPaidAdvisorAccess } from "@/lib/auth/entitlements";
 
 type PlanProtectedRouteProps = {
   children: ReactNode;
@@ -13,12 +14,12 @@ type PlanProtectedRouteProps = {
 export default function PlanProtectedRoute({ children }: PlanProtectedRouteProps) {
   const router = useRouter();
   const { user, userDoc, userDocLoading } = useAuth();
-  const hasPaidPlan = userDoc?.plan === "essential" || userDoc?.plan === "pro";
+  const canUseAdvisor = hasPaidAdvisorAccess(userDoc);
 
   useEffect(() => {
-    if (!user || userDocLoading || hasPaidPlan) return;
+    if (!user || userDocLoading || canUseAdvisor) return;
     router.replace("/pricing?reason=advisor");
-  }, [hasPaidPlan, router, user, userDocLoading]);
+  }, [canUseAdvisor, router, user, userDocLoading]);
 
   return (
     <ProtectedRoute>
@@ -31,13 +32,13 @@ export default function PlanProtectedRoute({ children }: PlanProtectedRouteProps
             </div>
           </section>
         </main>
-      ) : hasPaidPlan ? (
+      ) : canUseAdvisor ? (
         children
       ) : (
         <main>
           <section className="mw-shell">
             <div className="mx-auto w-full max-w-2xl rounded-xl border border-mw-accent/30 bg-mw-soft px-5 py-4 text-sm text-mw-body">
-              <p className="font-semibold text-mw-primary">Choose a plan to unlock the AI Advisor.</p>
+              <p className="font-semibold text-mw-primary">Choose an active paid plan to unlock the AI Advisor.</p>
               <Link href="/pricing" className="mt-3 inline-flex mw-btn-primary">
                 View Pricing
               </Link>

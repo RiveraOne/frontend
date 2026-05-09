@@ -3,6 +3,7 @@ import { adminAuth } from "@/lib/firebase/admin";
 import { ensureUserDoc, upsertUserDoc } from "@/lib/firebase/userDoc";
 import { stripe } from "@/lib/stripe/client";
 import { PLAN_CONFIG } from "@/lib/stripe/config";
+import { getAppBaseUrl } from "@/lib/routes/appUrl";
 import {
   getStripeAccountReadinessMessage,
   isMissingStripeResource,
@@ -65,9 +66,8 @@ export async function POST(request: Request) {
     );
   }
 
-  const origin = request.headers.get("origin") ?? "http://localhost:3000";
-
   try {
+    const appBaseUrl = getAppBaseUrl(request);
     const readinessMessage = await getStripeAccountReadinessMessage();
     if (readinessMessage) {
       return NextResponse.json({ error: readinessMessage }, { status: 500 });
@@ -103,13 +103,19 @@ export async function POST(request: Request) {
       client_reference_id: uid,
       line_items: [{ price: priceId, quantity: 1 }],
       mode: "subscription",
-      success_url: `${origin}/settings?upgraded=1`,
-      cancel_url: `${origin}/pricing`,
+      success_url: `${appBaseUrl}/settings?upgraded=1`,
+      cancel_url: `${appBaseUrl}/pricing`,
     });
 
     return NextResponse.json({ url: session.url });
   } catch (error) {
     console.error("Failed to create Stripe checkout session", error);
+    if (error instanceof Error && error.message.includes("APP_URL")) {
+      return NextResponse.json(
+        { error: "App URL is not configured for payment redirects." },
+        { status: 500 }
+      );
+    }
     return NextResponse.json(
       { error: messageForStripeError(error) },
       { status: 500 }
