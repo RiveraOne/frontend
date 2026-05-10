@@ -89,11 +89,20 @@ describe("TransactionDetailPage", () => {
   it("calls notFound() when the transaction does not exist", async () => {
     getTransaction.mockResolvedValueOnce(null);
 
-    expect(() => render(<TransactionDetailPage />)).not.toThrow();
+    // notFound() throws during re-render; suppress the window error so Vitest
+    // doesn't treat it as an unhandled exception
+    const suppressNotFound = (e: ErrorEvent) => {
+      if (e.error?.message === "NEXT_NOT_FOUND") e.preventDefault();
+    };
+    window.addEventListener("error", suppressNotFound);
+
+    render(<TransactionDetailPage />);
 
     await waitFor(() => {
       expect(notFound).toHaveBeenCalled();
     });
+
+    window.removeEventListener("error", suppressNotFound);
   });
 
   it("deletes the transaction after confirmation and redirects to /ledger", async () => {
