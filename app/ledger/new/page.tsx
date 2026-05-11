@@ -6,7 +6,7 @@ import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import ProtectedRoute from "@/components/auth/protected-route";
 import { useAuth } from "@/contexts/AuthContext";
-import { addTransaction, type TransactionType } from "@/lib/firebase";
+import { addTransaction, uploadReceipt, type TransactionType } from "@/lib/firebase";
 
 export default function NewLedgerEntryPage() {
   const router = useRouter();
@@ -17,6 +17,7 @@ export default function NewLedgerEntryPage() {
   const [category, setCategory] = useState("");
   const [date, setDate] = useState("");
   const [notes, setNotes] = useState("");
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -29,7 +30,8 @@ export default function NewLedgerEntryPage() {
   );
 
   function onFileChange(e: ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
+    const file = e.target.files?.[0] ?? null;
+    setReceiptFile(file);
     setPreviewUrl((current) => {
       if (current) URL.revokeObjectURL(current);
       return file ? URL.createObjectURL(file) : "";
@@ -49,13 +51,14 @@ export default function NewLedgerEntryPage() {
     setSaving(true);
     try {
       const trimmedNotes = notes.trim();
+      const receiptUrl = receiptFile ? await uploadReceipt(user.uid, receiptFile) : "";
       await addTransaction(user.uid, {
         type,
         amount: parsedAmount,
         category: category.trim(),
         date,
         ...(trimmedNotes ? { notes: trimmedNotes } : {}),
-        // receiptUrl: TODO — wire up Firebase Storage upload
+        ...(receiptUrl ? { receiptUrl } : {}),
       });
       router.push("/ledger");
     } catch (err) {
@@ -65,6 +68,8 @@ export default function NewLedgerEntryPage() {
         setError("Permission denied — check your Firestore security rules in the Firebase Console.");
       } else if (code === "unavailable" || code === "failed-precondition") {
         setError("Firestore database not reachable. Make sure it has been created in the Firebase Console.");
+      } else if (typeof code === "string" && code.startsWith("storage/")) {
+        setError("Could not upload receipt image. Make sure Firebase Storage is enabled and your storage rules allow signed-in uploads.");
       } else {
         setError(`Failed to save: ${err instanceof Error ? err.message : String(err)}`);
       }

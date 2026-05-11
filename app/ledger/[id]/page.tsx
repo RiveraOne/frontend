@@ -218,6 +218,25 @@ export default function TransactionDetailPage() {
                   <p className="text-sm text-mw-dark">{transaction.notes}</p>
                 </div>
               )}
+
+              {transaction.receiptUrl && (
+                <div className="px-6 py-4">
+                  <p className="mb-2 text-xs font-bold uppercase tracking-widest text-mw-light">Receipt</p>
+                  <a
+                    href={transaction.receiptUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block overflow-hidden rounded-xl border border-mw-border transition-opacity hover:opacity-90"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={transaction.receiptUrl}
+                      alt="Receipt"
+                      className="h-auto w-full object-contain"
+                    />
+                  </a>
+                </div>
+              )}
             </div>
           </div>
 

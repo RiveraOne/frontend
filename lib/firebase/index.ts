@@ -9,7 +9,7 @@ export {
   type Transaction,
   type TransactionType,
 } from "./firestore";
-export { storage } from "./storage";
+export { storage, uploadReceipt } from "./storage";
 export {
   registerWithEmail,
   loginWithEmail,
