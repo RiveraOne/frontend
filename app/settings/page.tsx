@@ -11,6 +11,7 @@ import { PLAN_CONFIG } from "@/lib/stripe/config";
 import { hasPaidAdvisorAccess } from "@/lib/auth/entitlements";
 
 type Theme = "light" | "dark";
+type CheckoutSyncState = "idle" | "syncing" | "done" | "error";
 
 function applyTheme(theme: Theme) {
   document.documentElement.classList.toggle("dark", theme === "dark");
@@ -21,7 +22,8 @@ function applyTheme(theme: Theme) {
 export default function SettingsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const upgraded = searchParams.get("upgraded") === "1";
+  const checkoutSessionId = searchParams.get("checkout_session_id");
+  const legacyUpgraded = searchParams.get("upgraded") === "1";
   const { user, loading, userDoc, userDocLoading } = useAuth();
 
   // ── Name editing ────────────────────────────────────────────────────────────
@@ -154,6 +156,66 @@ export default function SettingsPage() {
         ? <span className="font-semibold text-mw-primary">Unlimited queries</span>
         : <span className="font-semibold text-mw-primary">{queriesUsed} / {monthlyLimit} queries used this month</span>;
 
+  // ── Checkout return sync ───────────────────────────────────────────────────
+  const [checkoutSyncState, setCheckoutSyncState] = useState<CheckoutSyncState>("idle");
+  const [checkoutSyncError, setCheckoutSyncError] = useState("");
+
+  useEffect(() => {
+    if (!checkoutSessionId || !user || loading || userDocLoading || checkoutSyncState !== "idle") {
+      return;
+    }
+
+    if (!isFree) {
+      setCheckoutSyncState("done");
+      router.replace("/settings");
+      return;
+    }
+
+    let cancelled = false;
+    const currentUser = user;
+    const currentSessionId = checkoutSessionId;
+
+    async function syncCheckoutSession() {
+      setCheckoutSyncState("syncing");
+      setCheckoutSyncError("");
+
+      try {
+        const token = await currentUser.getIdToken();
+        const res = await fetch("/api/stripe/sync", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ sessionId: currentSessionId }),
+        });
+        const data = await res.json() as { error?: string };
+
+        if (cancelled) return;
+
+        if (!res.ok) {
+          setCheckoutSyncState("error");
+          setCheckoutSyncError(data.error ?? "Could not verify subscription. Please try again.");
+          return;
+        }
+
+        setCheckoutSyncState("done");
+        router.replace("/settings");
+      } catch {
+        if (!cancelled) {
+          setCheckoutSyncState("error");
+          setCheckoutSyncError("Could not connect to verify your subscription. Please refresh and try again.");
+        }
+      }
+    }
+
+    void syncCheckoutSession();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [checkoutSessionId, checkoutSyncState, isFree, loading, router, user, userDocLoading]);
+
   // ── Loading skeleton ─────────────────────────────────────────────────────────
   if (loading || userDocLoading) {
     return (
@@ -173,13 +235,25 @@ export default function SettingsPage() {
     <main>
       <section className="mw-shell">
         <div className="mx-auto w-full max-w-2xl">
-          {/* Upgrade success banner */}
-          {upgraded && (
+          {/* Upgrade status banner */}
+          {!isFree && (checkoutSyncState === "done" || legacyUpgraded) && (
             <div className="mb-4 flex items-center gap-3 rounded-xl border border-teal-200 bg-teal-50 px-4 py-3 text-sm text-teal-800 dark:border-teal-800 dark:bg-teal-950/40 dark:text-teal-300">
               <span className="text-base">🎉</span>
-              <span className="font-semibold">You&apos;re now on the {userDoc?.plan === "pro" ? "Pro" : "Essential"} plan — welcome aboard!</span>
+              <span className="font-semibold">You&apos;re now on the {planConfig.label} plan — welcome aboard!</span>
             </div>
           )}
+          {checkoutSessionId && isFree && checkoutSyncState !== "error" && (
+            <div className="mb-4 flex items-center gap-3 rounded-xl border border-teal-200 bg-teal-50 px-4 py-3 text-sm text-teal-800 dark:border-teal-800 dark:bg-teal-950/40 dark:text-teal-300">
+              <span className="text-base">⏳</span>
+              <span className="font-semibold">Finalizing your subscription with Stripe...</span>
+            </div>
+          )}
+          {(legacyUpgraded && isFree && !checkoutSessionId) || checkoutSyncState === "error" ? (
+            <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-800/60 dark:bg-amber-950/40 dark:text-amber-300">
+              <p className="font-semibold">Payment returned from Stripe, but your subscription is still being finalized.</p>
+              {checkoutSyncError && <p className="mt-1">{checkoutSyncError}</p>}
+            </div>
+          ) : null}
 
           {/* Page header */}
           <div className="mw-page-header">

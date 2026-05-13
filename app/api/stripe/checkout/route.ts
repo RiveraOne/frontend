@@ -103,7 +103,7 @@ export async function POST(request: Request) {
       client_reference_id: uid,
       line_items: [{ price: priceId, quantity: 1 }],
       mode: "subscription",
-      success_url: `${appBaseUrl}/settings?upgraded=1`,
+      success_url: `${appBaseUrl}/settings?checkout_session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${appBaseUrl}/pricing`,
     });
 

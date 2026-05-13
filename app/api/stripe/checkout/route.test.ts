@@ -239,7 +239,7 @@ describe("POST /api/stripe/checkout — happy path", () => {
         client_reference_id: "u-1",
         mode: "subscription",
         line_items: [{ price: "price_pro_test", quantity: 1 }],
-        success_url: "https://example.com/settings?upgraded=1",
+        success_url: "https://example.com/settings?checkout_session_id={CHECKOUT_SESSION_ID}",
         cancel_url: "https://example.com/pricing",
       })
     );
