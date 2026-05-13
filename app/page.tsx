@@ -1,3 +1,4 @@
+import HomeAuthRedirect from "./home-auth-redirect";
 import HeroSection from "@/components/landing/hero-section";
 import TickerMarquee from "@/components/landing/ticker-marquee";
 import FeaturesSection from "@/components/landing/features-section";
@@ -10,6 +11,7 @@ import CTASection from "@/components/landing/cta-section";
 export default function Home() {
   return (
     <main className="overflow-x-hidden">
+      <HomeAuthRedirect />
       <HeroSection />
       <TickerMarquee />
       <FeaturesSection />
