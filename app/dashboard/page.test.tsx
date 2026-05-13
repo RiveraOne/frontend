@@ -4,15 +4,21 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, render, screen } from "@testing-library/react";
 import type { Transaction } from "@/lib/firebase/firestore";
 
-const { useAuth, useRouter, usePathname, useSearchParams, subscribeToTransactions, friendlyFirestoreError } =
-  vi.hoisted(() => ({
-    useAuth: vi.fn(),
-    useRouter: vi.fn(),
-    usePathname: vi.fn(),
-    useSearchParams: vi.fn(),
-    subscribeToTransactions: vi.fn(),
-    friendlyFirestoreError: vi.fn(),
-  }));
+const {
+  useAuth,
+  useRouter,
+  usePathname,
+  useSearchParams,
+  subscribeToTransactions,
+  friendlyFirestoreError,
+} = vi.hoisted(() => ({
+  useAuth: vi.fn(),
+  useRouter: vi.fn(),
+  usePathname: vi.fn(),
+  useSearchParams: vi.fn(),
+  subscribeToTransactions: vi.fn(),
+  friendlyFirestoreError: vi.fn(),
+}));
 
 vi.mock("@/contexts/AuthContext", () => ({ useAuth }));
 vi.mock("next/navigation", () => ({ useRouter, usePathname, useSearchParams }));
@@ -32,7 +38,11 @@ beforeEach(() => {
   vi.clearAllMocks();
   unsub.mockReset();
 
-  useRouter.mockReturnValue({ push: vi.fn(), replace: vi.fn(), refresh: vi.fn() });
+  useRouter.mockReturnValue({
+    push: vi.fn(),
+    replace: vi.fn(),
+    refresh: vi.fn(),
+  });
   usePathname.mockReturnValue("/dashboard");
   useSearchParams.mockReturnValue(new URLSearchParams());
   useAuth.mockReturnValue({
@@ -46,11 +56,10 @@ beforeEach(() => {
     return unsub;
   });
 
-  friendlyFirestoreError.mockImplementation(
-    (err: Error) =>
-      "code" in err && (err as { code: string }).code === "permission-denied"
-        ? "Missing Firestore permission. Deploy firestore.rules so signed-in users can read and write their own transactions."
-        : "Could not load transactions. Please check your connection and try again."
+  friendlyFirestoreError.mockImplementation((err: Error) =>
+    "code" in err && (err as { code: string }).code === "permission-denied"
+      ? "Missing Firestore permission. Deploy firestore.rules so signed-in users can read and write their own transactions."
+      : "Could not load transactions. Please check your connection and try again.",
   );
 });
 
@@ -65,14 +74,17 @@ const tx = (overrides: Partial<Transaction>): Transaction =>
     type: "Expense",
     amount: 10,
     category: "Food",
-    createdAt: { seconds: 0, nanoseconds: 0 } as unknown as Transaction["createdAt"],
+    createdAt: {
+      seconds: 0,
+      nanoseconds: 0,
+    } as unknown as Transaction["createdAt"],
     ...overrides,
-  } as Transaction);
+  }) as Transaction;
 
 describe("DashboardPage", () => {
   it("greets the user with their first name", () => {
     render(<DashboardPage />);
-    expect(screen.getByText(/Good to see you, Ada/i)).toBeInTheDocument();
+    expect(screen.getByText(/Hi, Ada/i)).toBeInTheDocument();
   });
 
   it("subscribes to the user's transactions", () => {
