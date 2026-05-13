@@ -16,12 +16,13 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const redirectTo = safeAuthRedirect(searchParams.get("redirect"));
+  const signedInRedirectTo = searchParams.get("redirect") ? redirectTo : "/dashboard";
 
   useEffect(() => {
     if (!authLoading && user) {
-      router.replace(redirectTo);
+      router.replace(signedInRedirectTo);
     }
-  }, [authLoading, redirectTo, router, user]);
+  }, [authLoading, router, signedInRedirectTo, user]);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();

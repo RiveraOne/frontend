@@ -42,6 +42,27 @@ function fillForm(email: string, password: string) {
 }
 
 describe("LoginPage — submit", () => {
+  it("redirects an already-authenticated user to /dashboard by default", async () => {
+    useAuth.mockReturnValue({ user: { uid: "u-1" }, loading: false });
+
+    render(<LoginPage />);
+
+    await waitFor(() => {
+      expect(replace).toHaveBeenCalledWith("/dashboard");
+    });
+  });
+
+  it("redirects an already-authenticated user to a safe redirect target", async () => {
+    useAuth.mockReturnValue({ user: { uid: "u-1" }, loading: false });
+    useSearchParams.mockReturnValue(new URLSearchParams({ redirect: "/settings" }));
+
+    render(<LoginPage />);
+
+    await waitFor(() => {
+      expect(replace).toHaveBeenCalledWith("/settings");
+    });
+  });
+
   it("calls loginWithEmail and navigates to redirect target on success", async () => {
     loginWithEmail.mockResolvedValueOnce(undefined);
     useSearchParams.mockReturnValue(new URLSearchParams({ redirect: "/dashboard" }));

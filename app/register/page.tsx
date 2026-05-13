@@ -1,20 +1,29 @@
 "use client";
 
 import Link from "next/link";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
 import { registerWithEmail, loginWithGoogle } from "@/lib/firebase";
 import { safeAuthRedirect } from "@/lib/routes/redirects";
 
 export default function RegisterPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { user, loading: authLoading } = useAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const redirectTo = safeAuthRedirect(searchParams.get("redirect"));
+  const signedInRedirectTo = searchParams.get("redirect") ? redirectTo : "/dashboard";
+
+  useEffect(() => {
+    if (!authLoading && user) {
+      router.replace(signedInRedirectTo);
+    }
+  }, [authLoading, router, signedInRedirectTo, user]);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();

@@ -5,12 +5,30 @@ import { usePathname, useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import ThemeToggle from "./theme-toggle";
 import { useAuth } from "@/contexts/AuthContext";
+import { hasPaidAdvisorAccess } from "@/lib/auth/entitlements";
 import { logout } from "@/lib/firebase";
 
-const NAV_LINKS = [
+type NavLink = {
+  href: string;
+  label: string;
+  exact: boolean;
+};
+
+const LOGGED_OUT_NAV_LINKS: NavLink[] = [
   { href: "/", label: "Home", exact: true },
   { href: "/pricing", label: "Pricing", exact: false },
+];
+
+const FREE_USER_NAV_LINKS: NavLink[] = [
   { href: "/dashboard", label: "Dashboard", exact: false },
+  { href: "/ledger", label: "Ledger", exact: false },
+  { href: "/advisor", label: "Advisor", exact: false },
+  { href: "/pricing", label: "Pricing", exact: false },
+];
+
+const PAID_USER_NAV_LINKS: NavLink[] = [
+  { href: "/dashboard", label: "Dashboard", exact: false },
+  { href: "/ledger", label: "Ledger", exact: false },
   { href: "/advisor", label: "Advisor", exact: false },
 ];
 
@@ -144,8 +162,13 @@ function UserMenu({ name, email, photoURL }: { name: string | null; email: strin
 export default function Navbar() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { user, loading } = useAuth();
+  const { user, loading, userDoc } = useAuth();
   const router = useRouter();
+  const navLinks = user
+    ? hasPaidAdvisorAccess(userDoc)
+      ? PAID_USER_NAV_LINKS
+      : FREE_USER_NAV_LINKS
+    : LOGGED_OUT_NAV_LINKS;
 
   const isActive = (href: string, exact: boolean) =>
     exact ? pathname === href : pathname.startsWith(href);
@@ -171,7 +194,7 @@ export default function Navbar() {
 
           {/* Desktop nav links */}
           <nav className="hidden items-center sm:flex" aria-label="Primary">
-            {NAV_LINKS.map(({ href, label, exact }) => {
+            {navLinks.map(({ href, label, exact }) => {
               const active = isActive(href, exact);
               return (
                 <Link
@@ -233,7 +256,7 @@ export default function Navbar() {
       {mobileOpen && (
         <div className="border-t border-mw-border bg-mw-bg px-5 pb-4 sm:hidden">
           <nav className="mt-3 flex flex-col gap-1" aria-label="Mobile">
-            {NAV_LINKS.map(({ href, label, exact }) => {
+            {navLinks.map(({ href, label, exact }) => {
               const active = isActive(href, exact);
               return (
                 <Link

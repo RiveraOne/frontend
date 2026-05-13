@@ -3,27 +3,32 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
-const { useRouter, useSearchParams, registerWithEmail, loginWithGoogle } =
+const { useAuth, useRouter, useSearchParams, registerWithEmail, loginWithGoogle } =
   vi.hoisted(() => ({
+    useAuth: vi.fn(),
     useRouter: vi.fn(),
     useSearchParams: vi.fn(),
     registerWithEmail: vi.fn(),
     loginWithGoogle: vi.fn(),
   }));
 
+vi.mock("@/contexts/AuthContext", () => ({ useAuth }));
 vi.mock("next/navigation", () => ({ useRouter, useSearchParams }));
 vi.mock("@/lib/firebase", () => ({ registerWithEmail, loginWithGoogle, auth: {} }));
 
 import RegisterPage from "./page";
 
 const push = vi.fn();
+const replace = vi.fn();
 
 beforeEach(() => {
   push.mockReset();
+  replace.mockReset();
   registerWithEmail.mockReset();
   loginWithGoogle.mockReset();
-  useRouter.mockReturnValue({ push, replace: vi.fn(), refresh: vi.fn() });
+  useRouter.mockReturnValue({ push, replace, refresh: vi.fn() });
   useSearchParams.mockReturnValue(new URLSearchParams());
+  useAuth.mockReturnValue({ user: null, loading: false });
 });
 
 afterEach(() => {
@@ -39,6 +44,27 @@ function fillForm(name: string, email: string, password: string) {
 }
 
 describe("RegisterPage — submit", () => {
+  it("redirects an already-authenticated user to /dashboard by default", async () => {
+    useAuth.mockReturnValue({ user: { uid: "u-1" }, loading: false });
+
+    render(<RegisterPage />);
+
+    await waitFor(() => {
+      expect(replace).toHaveBeenCalledWith("/dashboard");
+    });
+  });
+
+  it("redirects an already-authenticated user to a safe redirect target", async () => {
+    useAuth.mockReturnValue({ user: { uid: "u-1" }, loading: false });
+    useSearchParams.mockReturnValue(new URLSearchParams({ redirect: "/settings" }));
+
+    render(<RegisterPage />);
+
+    await waitFor(() => {
+      expect(replace).toHaveBeenCalledWith("/settings");
+    });
+  });
+
   it("calls registerWithEmail and navigates to /pricing on success", async () => {
     registerWithEmail.mockResolvedValueOnce(undefined);
 
